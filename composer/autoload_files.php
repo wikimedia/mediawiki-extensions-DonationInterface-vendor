@@ -9,4 +9,5 @@ return array(
     $vendorDir . '/minfraud/http/src/HTTPBase.php',
     $vendorDir . '/minfraud/http/src/CreditCardFraudDetection.php',
     $vendorDir . '/minfraud/http/src/TelephoneVerification.php',
+    $baseDir . '/gateway_common/WmfFramework.php',
 );
