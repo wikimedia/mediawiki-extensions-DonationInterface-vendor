@@ -6,5 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'FuseSource' => array($vendorDir . '/fusesource/stomp-php/src'),
+    'Psr\\Log\\' => array($vendorDir . '/psr/log'),
+    'Monolog' => array($vendorDir . '/monolog/monolog/src'),
 );
