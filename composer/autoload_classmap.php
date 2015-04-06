@@ -30,6 +30,7 @@ return array(
     'MWException' => $baseDir . '/gateway_common/MWException.drupal.php',
     'NationalCurrencies' => $baseDir . '/gateway_common/NationalCurrencies.php',
     'PaymentMethod' => $baseDir . '/gateway_common/PaymentMethod.php',
+    'PaymentResult' => $baseDir . '/gateway_common/PaymentResult.php',
     'PaypalAdapter' => $baseDir . '/paypal_gateway/paypal.adapter.php',
     'PaypalGateway' => $baseDir . '/paypal_gateway/paypal_gateway.body.php',
     'PaypalGatewayResult' => $baseDir . '/paypal_gateway/paypal_resultswitcher.body.php',
