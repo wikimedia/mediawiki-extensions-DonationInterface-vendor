@@ -3,6 +3,7 @@ namespace PHPQueue\Backend;
 
 use FuseSource\Stomp\Stomp as FuseStomp;
 
+use BadMethodCallException;
 use PHPQueue\Exception\BackendException;
 use PHPQueue\Exception\JobNotFoundException;
 use PHPQueue\Interfaces\FifoQueueStore;
@@ -140,6 +141,6 @@ class Stomp
 
     public function clear($key=null)
     {
-        throw new Exception('Not implemented.');
+        throw new BadMethodCallException('Not implemented.');
     }
 }
