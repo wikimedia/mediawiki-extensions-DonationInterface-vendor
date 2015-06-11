@@ -262,14 +262,8 @@
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
-            "url": "https://github.com/adamwight/php-queue.git",
-            "reference": "fc0dae393b967d79c17d89853e67e23f0c27e6e9"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/adamwight/php-queue/zipball/fc0dae393b967d79c17d89853e67e23f0c27e6e9",
-            "reference": "fc0dae393b967d79c17d89853e67e23f0c27e6e9",
-            "shasum": ""
+            "url": "https://gerrit.wikimedia.org/r/p/wikimedia/fundraising/php-queue.git",
+            "reference": "3c062acba108291de7bb726b806313308cf6c809"
         },
         "require": {
             "clio/clio": "@stable",
@@ -283,7 +277,7 @@
             "iron-io/iron_mq": "dev-master",
             "microsoft/windowsazure": "dev-master",
             "mrpoundsign/pheanstalk-5.3": "dev-master",
-            "predis/predis": "v0.8.0"
+            "predis/predis": "1.*"
         },
         "suggest": {
             "Respect/Rest": "For a REST server to post job data",
@@ -297,7 +291,7 @@
             "pecl-mongodb": "For MongoDB backend support",
             "predis/predis": "For Redis backend support"
         },
-        "time": "2015-05-07 09:18:14",
+        "time": "2015-06-05 23:45:14",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -324,9 +318,6 @@
         "keywords": [
             "queue",
             "transaction"
-        ],
-        "support": {
-            "source": "https://github.com/adamwight/php-queue/tree/master"
-        }
+        ]
     }
 ]

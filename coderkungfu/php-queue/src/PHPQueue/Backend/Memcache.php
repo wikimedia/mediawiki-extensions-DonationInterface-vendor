@@ -58,7 +58,7 @@ class Memcache
      */
     public function add($key, $data, $expiry=null)
     {
-        $this->set($key, json_encode($data), $expiry);
+        $this->set($key, $data, $expiry);
         return true;
     }
 
@@ -77,10 +77,6 @@ class Memcache
             throw new BackendException("No data.");
         }
         $this->beforeAdd();
-        if (is_array($expiry)) {
-            // FIXME: Silently swallow incompatible $properties argument.
-            $expiry = null;
-        }
         if (empty($expiry)) {
             $expiry = $this->expiry;
         }
