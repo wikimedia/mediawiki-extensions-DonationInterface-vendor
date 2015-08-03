@@ -12,6 +12,7 @@ return array(
     'AmazonAdapter' => $baseDir . '/amazon_gateway/amazon.adapter.php',
     'AmazonGateway' => $baseDir . '/amazon_gateway/amazon_gateway.body.php',
     'CurrencyRates' => $baseDir . '/gateway_common/CurrencyRates.php',
+    'CyclicalArray' => $baseDir . '/globalcollect_gateway/CyclicalArray.php',
     'DataValidator' => $baseDir . '/gateway_common/DataValidator.php',
     'DonationApi' => $baseDir . '/gateway_common/donation.api.php',
     'DonationData' => $baseDir . '/gateway_common/DonationData.php',
