@@ -27,7 +27,7 @@ return array(
     'GlobalCollectAdapter' => $baseDir . '/globalcollect_gateway/globalcollect.adapter.php',
     'GlobalCollectGateway' => $baseDir . '/globalcollect_gateway/globalcollect_gateway.body.php',
     'GlobalCollectGatewayResult' => $baseDir . '/globalcollect_gateway/globalcollect_resultswitcher.body.php',
-    'GlobalCollectOrphanAdapter' => $baseDir . '/globalcollect_gateway/scripts/orphan_adapter.php',
+    'GlobalCollectOrphanAdapter' => $baseDir . '/globalcollect_gateway/scripts/orphan.adapter.php',
     'GlobalCollectOrphanRectifier' => $baseDir . '/globalcollect_gateway/scripts/orphans.php',
     'LCRun3' => $vendorDir . '/zordius/lightncandy/src/lightncandy.php',
     'LightnCandy' => $vendorDir . '/zordius/lightncandy/src/lightncandy.php',
