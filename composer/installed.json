@@ -371,5 +371,46 @@
             "queue",
             "transaction"
         ]
+    },
+    {
+        "name": "amzn/login-and-pay-with-amazon-sdk-php",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ejegg/login-and-pay-with-amazon-sdk-php",
+            "reference": "24b31581d85c232a3b0f5038c2894d565c831392"
+        },
+        "require": {
+            "ext-curl": "*",
+            "php": ">=5.3.0"
+        },
+        "time": "2015-08-24 21:48:53",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "PayWithAmazon\\": "PayWithAmazon/"
+            }
+        },
+        "license": [
+            "Apache OSL-2"
+        ],
+        "authors": [
+            {
+                "name": "Amazon Payments",
+                "email": "eps-dse@amazon.com"
+            }
+        ],
+        "description": "Pay with Amazon SDK",
+        "homepage": "https://github.com/amzn/login-and-pay-with-amazon-sdk-php",
+        "keywords": [
+            "amazon",
+            "amazon payments",
+            "pay",
+            "pay with amazon",
+            "payment",
+            "payments"
+        ]
     }
 ]

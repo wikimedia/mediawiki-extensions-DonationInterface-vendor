@@ -10,6 +10,7 @@ return array(
     'AdyenGateway' => $baseDir . '/adyen_gateway/adyen_gateway.body.php',
     'AdyenGatewayResult' => $baseDir . '/adyen_gateway/adyen_resultswitcher.body.php',
     'AmazonAdapter' => $baseDir . '/amazon_gateway/amazon.adapter.php',
+    'AmazonBillingApi' => $baseDir . '/amazon_gateway/amazon.api.php',
     'AmazonGateway' => $baseDir . '/amazon_gateway/amazon_gateway.body.php',
     'CurrencyRates' => $baseDir . '/gateway_common/CurrencyRates.php',
     'CyclicalArray' => $baseDir . '/globalcollect_gateway/CyclicalArray.php',
@@ -49,5 +50,6 @@ return array(
     'WmfFramework_Mediawiki' => $baseDir . '/gateway_common/WmfFramework.mediawiki.php',
     'WorldpayAdapter' => $baseDir . '/worldpay_gateway/worldpay.adapter.php',
     'WorldpayGateway' => $baseDir . '/worldpay_gateway/worldpay_gateway.body.php',
+    'WorldpayGatewayResult' => $baseDir . '/worldpay_gateway/worldpay_resultswitcher.body.php',
     'WorldpayValidateApi' => $baseDir . '/worldpay_gateway/worldpay.api.php',
 );
