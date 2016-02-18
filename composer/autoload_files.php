@@ -6,5 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    $baseDir . '/gateway_common/WmfFramework.php',
+    '67153d798259e2422f77ee379077b565' => $vendorDir . '/minfraud/http/src/HTTPBase.php',
+    '038a1d49667b1c077e3f164315eba901' => $vendorDir . '/minfraud/http/src/CreditCardFraudDetection.php',
+    'bf34263f834e2781b79cae4d55a1d350' => $baseDir . '/gateway_common/WmfFramework.php',
 );
