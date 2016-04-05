@@ -257,65 +257,13 @@
         ]
     },
     {
-        "name": "predis/predis",
-        "version": "v1.0.1",
-        "version_normalized": "1.0.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/nrk/predis.git",
-            "reference": "7a170b3d8123c556597b4fbdb88631f99de180c2"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/nrk/predis/zipball/7a170b3d8123c556597b4fbdb88631f99de180c2",
-            "reference": "7a170b3d8123c556597b4fbdb88631f99de180c2",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.2"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.0"
-        },
-        "suggest": {
-            "ext-curl": "Allows access to Webdis when paired with phpiredis",
-            "ext-phpiredis": "Allows faster serialization and deserialization of the Redis protocol"
-        },
-        "time": "2015-01-02 12:51:34",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Predis\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Daniele Alessandri",
-                "email": "suppakilla@gmail.com",
-                "homepage": "http://clorophilla.net"
-            }
-        ],
-        "description": "Flexible and feature-complete PHP client library for Redis",
-        "homepage": "http://github.com/nrk/predis",
-        "keywords": [
-            "nosql",
-            "predis",
-            "redis"
-        ]
-    },
-    {
         "name": "coderkungfu/php-queue",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://gerrit.wikimedia.org/r/p/wikimedia/fundraising/php-queue.git",
-            "reference": "4e3e6ebd093e8528fbb73204acfda4d09aa0a494"
+            "reference": "c5a5200e3b5df3ec5f02ff27e8e6d9a07ce10b5e"
         },
         "require": {
             "clio/clio": "@stable",
@@ -343,7 +291,7 @@
             "pecl-mongodb": "For MongoDB backend support",
             "predis/predis": "For Redis backend support"
         },
-        "time": "2015-06-11 20:26:19",
+        "time": "2015-08-25 20:02:50",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -370,47 +318,6 @@
         "keywords": [
             "queue",
             "transaction"
-        ]
-    },
-    {
-        "name": "amzn/login-and-pay-with-amazon-sdk-php",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/ejegg/login-and-pay-with-amazon-sdk-php",
-            "reference": "24b31581d85c232a3b0f5038c2894d565c831392"
-        },
-        "require": {
-            "ext-curl": "*",
-            "php": ">=5.3.0"
-        },
-        "time": "2015-08-24 21:48:53",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "PayWithAmazon\\": "PayWithAmazon/"
-            }
-        },
-        "license": [
-            "Apache OSL-2"
-        ],
-        "authors": [
-            {
-                "name": "Amazon Payments",
-                "email": "eps-dse@amazon.com"
-            }
-        ],
-        "description": "Pay with Amazon SDK",
-        "homepage": "https://github.com/amzn/login-and-pay-with-amazon-sdk-php",
-        "keywords": [
-            "amazon",
-            "amazon payments",
-            "pay",
-            "pay with amazon",
-            "payment",
-            "payments"
         ]
     },
     {
@@ -506,5 +413,98 @@
         ],
         "description": "Symfony Yaml Component",
         "homepage": "https://symfony.com"
+    },
+    {
+        "name": "predis/predis",
+        "version": "v1.0.3",
+        "version_normalized": "1.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/nrk/predis.git",
+            "reference": "84060b9034d756b4d79641667d7f9efe1aeb8e04"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/nrk/predis/zipball/84060b9034d756b4d79641667d7f9efe1aeb8e04",
+            "reference": "84060b9034d756b4d79641667d7f9efe1aeb8e04",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.2"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.0"
+        },
+        "suggest": {
+            "ext-curl": "Allows access to Webdis when paired with phpiredis",
+            "ext-phpiredis": "Allows faster serialization and deserialization of the Redis protocol"
+        },
+        "time": "2015-07-30 18:34:15",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Predis\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Daniele Alessandri",
+                "email": "suppakilla@gmail.com",
+                "homepage": "http://clorophilla.net"
+            }
+        ],
+        "description": "Flexible and feature-complete PHP client library for Redis",
+        "homepage": "http://github.com/nrk/predis",
+        "keywords": [
+            "nosql",
+            "predis",
+            "redis"
+        ]
+    },
+    {
+        "name": "amzn/login-and-pay-with-amazon-sdk-php",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ejegg/login-and-pay-with-amazon-sdk-php",
+            "reference": "855d642f85f14c76ca810013b0323ae4ac37f1c6"
+        },
+        "require": {
+            "ext-curl": "*",
+            "php": ">=5.3.0"
+        },
+        "time": "2016-02-17 00:53:20",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "PayWithAmazon\\": "PayWithAmazon/"
+            }
+        },
+        "license": [
+            "Apache OSL-2"
+        ],
+        "authors": [
+            {
+                "name": "Amazon Payments",
+                "email": "eps-dse@amazon.com"
+            }
+        ],
+        "description": "Pay with Amazon SDK",
+        "homepage": "https://github.com/amzn/login-and-pay-with-amazon-sdk-php",
+        "keywords": [
+            "amazon",
+            "amazon payments",
+            "pay",
+            "pay with amazon",
+            "payment",
+            "payments"
+        ]
     }
 ]
