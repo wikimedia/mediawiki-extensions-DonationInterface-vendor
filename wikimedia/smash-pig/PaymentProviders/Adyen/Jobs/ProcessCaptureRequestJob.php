@@ -1,6 +1,7 @@
 <?php namespace SmashPig\PaymentProviders\Adyen\Jobs;
 
 use SmashPig\Core\Configuration;
+use SmashPig\Core\DataStores\PendingDatabase;
 use SmashPig\Core\Jobs\RunnableJob;
 use SmashPig\Core\Logging\Logger;
 use SmashPig\Core\Logging\TaggedLogger;
@@ -76,6 +77,13 @@ class ProcessCaptureRequestJob extends RunnableJob {
 		$queueMessage = $pendingQueue->queueGetObject( null, $this->correlationId );
 		$success = true;
 
+		$db = PendingDatabase::get();
+		$dbMessage = null;
+		if ( $db ) {
+			$this->logger->debug( 'Attempting to locate associated message in pending database.' );
+			$dbMessage = $db->fetchMessageByGatewayOrderId( 'adyen', $this->merchantReference );
+			PendingDatabase::comparePending( $queueMessage, $dbMessage );
+		}
 		$action = $this->determineAction( $queueMessage );
 		switch ( $action ) {
 			case self::ACTION_PROCESS:
@@ -99,6 +107,10 @@ class ProcessCaptureRequestJob extends RunnableJob {
 					$pendingQueue->queueAckObject();
 					$queueMessage->captured = true;
 					$pendingQueue->addObject( $queueMessage );
+					if ( $dbMessage ) {
+						$dbMessage['captured'] = true;
+						$db->storeMessage( $dbMessage );
+					}
 				} else {
 					// Some kind of error in the request. We should keep the pending
 					// message, complain loudly, and move this capture job to the
@@ -116,6 +128,9 @@ class ProcessCaptureRequestJob extends RunnableJob {
 				$this->cancelAuthorization();
 				// Delete the fraudy donor details
 				$pendingQueue->queueAckObject();
+				if ( $dbMessage ) {
+					$db->deleteMessage( $dbMessage );
+				}
 				break;
 			case self::ACTION_DUPLICATE:
 				// We have already captured one payment for this donation attempt, so
@@ -144,9 +159,11 @@ class ProcessCaptureRequestJob extends RunnableJob {
 		if ( $queueMessage && ( $queueMessage instanceof DonationInterfaceMessage ) ) {
 			$this->logger->debug( 'A valid message was obtained from the pending queue.' );
 		} else {
+			$errMessage =  "Could not find a processable message for " .
+				"PSP Reference '{$this->pspReference}' and ".
+				"correlation ID '{$this->correlationId}'.";
 			$this->logger->warning(
-				"Could not find a processable message for PSP Reference '{$this->pspReference}' and correlation ".
-					"ID '{$this->correlationId}'.",
+				$errMessage,
 				$queueMessage
 			);
 			return self::ACTION_MISSING;
@@ -199,7 +216,7 @@ class ProcessCaptureRequestJob extends RunnableJob {
 			$queueMessage, $this->merchantReference, $riskScore, $scoreBreakdown, $action
 		);
 		$this->logger->debug( "Sending antifraud message with risk score $riskScore and action $action." );
-		Configuration::getDefaultConfig()->object( 'data-store/antifraud' )->addObject( $antifraudMessage );
+		Configuration::getDefaultConfig()->object( 'data-store/antifraud' )->push( $antifraudMessage );
 	}
 
 	/**

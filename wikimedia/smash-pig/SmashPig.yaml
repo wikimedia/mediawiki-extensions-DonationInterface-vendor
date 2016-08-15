@@ -6,6 +6,12 @@
 
 default:
     data-store:
+        redis: &REDIS
+            servers:
+                scheme: tcp
+                host: 127.0.0.1
+                port: 6379
+
         # Store definitions
         inflight:
             class: SmashPig\Core\DataStores\DiskFileDataStore
@@ -13,6 +19,12 @@ default:
                 - /tmp/
 
         antifraud:
+            class: SmashPig\Core\DataStores\MultiQueueWriter
+            inst-args:
+                -
+                    - antifraud-stomp
+
+        antifraud-stomp:
             class: SmashPig\Core\DataStores\StompDataStore
             inst-args:
                 - antifraud
@@ -26,28 +38,26 @@ default:
             class: PHPQueue\Backend\Predis
             inst-args:
                 -
+                    <<: *REDIS
                     queue: pending
-                    servers:
-                        scheme: tcp
-                        host: 127.0.0.1
-                        port: 6379
-
-        pending-damaged:
-            class: PHPQueue\Backend\Predis
-            inst-args:
-                -
-                    queue: pending-damaged
-                    servers:
-                        scheme: tcp
-                        host: 127.0.0.1
-                        port: 6379
 
         pending-db:
             class: PDO
             inst-args:
                 - 'mysql:host=127.0.0.1;dbname=pending'
 
+        damaged-db:
+            class: PDO
+            inst-args:
+                - 'mysql:host=127.0.0.1;dbname=pending'
+
         refund:
+            class: SmashPig\Core\DataStores\MultiQueueWriter
+            inst-args:
+                -
+                    - refund-stomp
+
+        refund-stomp:
             class: SmashPig\Core\DataStores\StompDataStore
             inst-args:
                 - refund
@@ -68,6 +78,12 @@ default:
                 - jobs
 
         verified:
+            class: SmashPig\Core\DataStores\MultiQueueWriter
+            inst-args:
+                -
+                    - verified-stomp
+
+        verified-stomp:
             class: SmashPig\Core\DataStores\StompDataStore
             inst-args:
                 - verified
