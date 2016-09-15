@@ -22,16 +22,12 @@ class QueueConsumerTest extends BaseSmashPigUnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
-		Context::initWithLogger( new QueueTestConfiguration() );
+		Context::initWithLogger( QueueTestConfiguration::instance() );
 		$this->queue = BaseQueueConsumer::getQueue( 'test' );
 		$this->queue->createTable( 'test' );
-		$this->damaged = DamagedDatabase::get()->getDatabase();
-
-		// Create sqlite schema
-		$sql = file_get_contents(
-			__DIR__ . '/../Schema/sqlite/002_CreateDamagedTable.sqlite.sql'
-		);
-		$this->damaged->exec( $sql );
+		$damagedDb = DamagedDatabase::get();
+		$damagedDb->createTable();
+		$this->damaged = $damagedDb->getDatabase();
 	}
 
 	public function testEmptyQueue() {

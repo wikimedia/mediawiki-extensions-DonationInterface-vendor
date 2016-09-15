@@ -15,20 +15,14 @@ class PendingDatabaseTest extends BaseSmashPigUnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
-		Context::initWithLogger( new PendingDatabaseTestConfiguration() );
+		$config = SmashPigDatabaseTestConfiguration::instance();
+		Context::initWithLogger( $config );
 		$this->db = PendingDatabase::get();
-
-		// Create sqlite schema
-		$sql = file_get_contents( __DIR__ . '/../Schema/sqlite/001_CreatePendingTable.sqlite.sql' );
-		$this->db->getDatabase()->exec( $sql );
+		$this->db->createTable();
 	}
 
 	public function tearDown() {
-		// Reset PDO static member
-		$klass = new \ReflectionClass( 'SmashPig\Core\DataStores\PendingDatabase' );
-		$dbProperty = $klass->getProperty( 'db' );
-		$dbProperty->setAccessible( true );
-		$dbProperty->setValue( null );
+		TestingDatabase::clearStatics( $this->db );
 
 		parent::tearDown();
 	}

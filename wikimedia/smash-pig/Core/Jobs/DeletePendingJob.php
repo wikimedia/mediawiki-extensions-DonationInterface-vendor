@@ -1,50 +1,50 @@
 <?php namespace SmashPig\Core\Jobs;
 
-use SmashPig\Core\Configuration;
 use SmashPig\Core\DataStores\PendingDatabase;
 use SmashPig\Core\Logging\Logger;
 
 /**
- * Job that deletes donor information from the pending data stores.
+ * Job that deletes donor information from the pending database.
  * Used when we get a notification of payment failure.
  */
 class DeletePendingJob extends RunnableJob {
 
-	protected $orderId;
+	protected $order_id;
 	protected $gateway;
 
 	/**
 	 * @param string $gateway Gateway identifier
 	 * @param string $orderId Payment order ID
 	 * @param string $correlationId Message correlation ID (deprecated)
+	 * @return DeletePendingJob
 	 */
-	public function __construct( $gateway, $orderId, $correlationId ) {
-		$this->gateway = $gateway;
-		$this->orderId = $orderId;
-		$this->correlationId = $correlationId;
+	public static function factory( $gateway, $orderId, $correlationId ) {
+		$job = new DeletePendingJob();
+
+		$job->gateway = $gateway;
+		$job->order_id = $orderId;
+		$job->correlationId = $correlationId;
+
+		return $job;
 	}
 
 	public function execute() {
-		$logger = Logger::getTaggedLogger( "corr_id-{$this->correlationId}" );
-		$logger->info(
-			"Deleting from pending queue where correlation ID='{$this->correlationId}'"
+		$logger = Logger::getTaggedLogger(
+			"corr_id-{$this->gateway}-{$this->order_id}"
 		);
-		$pendingQueueObj = Configuration::getDefaultConfig()->object( 'data-store/pending' );
-		$pendingQueueObj->removeObjectsById( $this->correlationId );
 
 		$logger->info(
 			"Deleting message from pending db where gateway = '{$this->gateway}' " .
-			"and order ID='{$this->orderId}'"
+			"and order ID='{$this->order_id}'"
 		);
-		$db = PendingDatabase::get();
-		if ( $db ) {
-			$dbMessage = $db->fetchMessageByGatewayOrderId(
-				$this->gateway, $this->orderId
-			);
-			if ( $dbMessage ) {
-				$db->deleteMessage( $dbMessage );
-			}
-		}
+
+		$deleteParams = array(
+			'gateway' => $this->gateway,
+			'order_id' => $this->order_id,
+		);
+		PendingDatabase::get()
+			->deleteMessage( $deleteParams );
+
 		return true;
 	}
 }

@@ -4,7 +4,7 @@ namespace SmashPig\Core;
 use Symfony\Component\Yaml\Parser;
 
 /**
- * Represents actions onto a configuration view.
+ * Cascading configuration using YAML files
  */
 class Configuration {
 
@@ -17,18 +17,23 @@ class Configuration {
 	/** @var array keyed on class name that stores persistent objects */
 	protected $objects = array();
 
-	/** @var string Name of the view that generated this configuration object */
+	/**
+	 * @var string Name of the view that generated this configuration object
+	 *
+	 * FIXME: There's still something fishy about view.
+	 */
 	protected $viewName = 'default';
 
 	/**
 	 * Obtains the current default configuration object. You should probably be
 	 * using a context call instead of this. See Context->getConfiguration()
+	 * FIXME: Resolve ambiguity, only provide one entry point.
 	 *
 	 * Typically the object created by index.php
 	 *
 	 * @return Configuration
 	 */
-	public static function &getDefaultConfig() {
+	public static function getDefaultConfig() {
 		return Configuration::$defaultObj;
 	}
 
@@ -37,87 +42,152 @@ class Configuration {
 	 *
 	 * @param Configuration $obj
 	 */
-	protected static function setDefaultConfig( Configuration &$obj ) {
+	protected static function setDefaultConfig( Configuration $obj ) {
+		// TODO: And in fact, freak out if there's already a default config.
 		Configuration::$defaultObj = $obj;
 	}
 
 	/**
 	 * Creates a configuration object for a specific configuration node.
 	 *
-	 * @param string $view          Configuration view to load
-	 * @param string $overridePath  Extra configuration path to search
+	 * @param string $view Configuration view to load
+	 * FIXME: No reason to provide a default.
+	 *
+	 * @return Configuration or subclass
 	 */
-	public function __construct( $view = 'default', $overridePath = null ) {
-		// Check to make sure APC is installed :) Yay caching for expensive operations!
-		$useApc = false;
-		if ( extension_loaded( 'apc' ) ) {
-			$useApc = true;
-		}
+	public static function createForView( $view = 'default' ) {
+		$config = new static();
+		$config->viewName = $view;
+		$config->loadDefaultConfig();
 
-		$searchPath = array(
-			__DIR__ . '/../SmashPig.yaml',
-			'/etc/fundraising/SmashPig.yaml',
-		);
+		return $config;
+	}
+
+	/**
+	 * Creates a configuration object for a specific configuration node.
+	 *
+	 * FIXME: Don't provide defaults once usages are cleaned up.
+	 *
+	 * @param string $view Configuration view to load
+	 * @param array|string|null $overridePath  Extra configuration path(s) to search
+	 *
+	 * @return Configuration or subclass
+	 */
+	public static function createForViewWithOverrideFile( $view = 'default', $overridePath = null ) {
+		$config = new static();
+		$config->viewName = $view;
+
+		if ( !$overridePath ) {
+			$config->loadDefaultConfig();
+		} else {
+			$searchPath = array_merge(
+				( array ) $overridePath,
+				$config->getDefaultSearchPath()
+			);
+			$config->loadConfigFromPaths( $searchPath );
+		}
+		return $config;
+	}
+
+	protected function __construct() {
+		Configuration::setDefaultConfig( $this );
+	}
+
+	public function loadDefaultConfig() {
+		$this->loadConfigFromPaths( $this->getDefaultSearchPath() );
+	}
+
+	public function getDefaultSearchPath() {
+		$searchPath = array();
 		if ( isset( $_SERVER['HOME'] ) ) {
 			// FIXME: But I don't understand why this key is missing during testing.
-			$searchPath[] =  $_SERVER['HOME'] . '/.fundraising/SmashPig.yaml';
+			$searchPath[] =  "{$_SERVER['HOME']}/.fundraising/SmashPig.yaml";
 		}
-		if ( $overridePath ) {
-			$searchPath[] = $overridePath;
-		}
+		$searchPath[] = '/etc/fundraising/SmashPig.d/*.yaml';
+		$searchPath[] = '/etc/fundraising/SmashPig.yaml';
+		$searchPath[] = __DIR__ . "/../SmashPig.yaml";
+		return $searchPath;
+	}
 
-		if ( $useApc && $this->loadConfigFromCache( $searchPath, $view ) ) {
-			// Config file loaded, nothing else to do
-		} else {
-			// Attempt to load the configuration files from disk
-			$configs = array();
-			$yaml = new Parser();
-			foreach ( $searchPath as $path ) {
-				if ( file_exists( $path ) ) {
-					$config = $yaml->parse( file_get_contents( $path ) );
-					if ( !is_array( $config ) ) {
-						throw new \RuntimeException( "Bad config file format: '$path'" );
-					}
-					$configs[] = $config;
-				}
-			}
+	/**
+	 * Load a search path consisting of single files or globs
+	 *
+	 * Settings from files earlier in the list take precedence.  The funky
+	 * "view" override happens here in a second step, with view data from all
+	 * source files taking precedence over default data from all files.
+	 *
+	 * @param array $searchPath
+	 */
+	public function loadConfigFromPaths( $searchPath ) {
+		$paths = $this->expandSearchPathToActual( $searchPath );
 
-			// Pull in all default sections first, using the following precedence:
-			// 1. ~/.fundraising/SmashPig.yaml
-			// 2. /etc/fundraising/SmashPig.yaml
-			// 3. <source dir>/SmashPig.yaml
-			$this->options = array();
-			foreach ( $configs as $config ) {
-				if ( isset( $config['default'] ) ) {
-					static::treeMerge( $this->options, $config['default'] );
-				}
-			}
-
-			// Now, go through in the same order and let all $view sections override
-			// defaults.
-			if ( $view && $view !== 'default' ) {
-				foreach ( $configs as $config ) {
-					if ( isset( $config[$view] ) ) {
-						static::treeMerge( $this->options, $config[$view] );
-					}
-				}
-			}
-
-			// Store the configuration to cache if possible
-			if ( $useApc ) {
-				$this->saveConfigToCache( $searchPath, $view );
-			}
+		if ( $this->loadConfigFromCache( $paths ) ) {
+			// Config file loaded, nothing else to do.
+			return;
 		}
 
-		$this->viewName = $view;
-		Configuration::setDefaultConfig( $this );
+		// Reset to empty set.
+		$this->options = array();
+
+		// Attempt to load the configuration files from disk
+		$configs = array();
+		$yamlParser = new Parser();
+		foreach ( $paths as $path ) {
+			$config = $yamlParser->parse( file_get_contents( $path ) );
+			if ( !is_array( $config ) ) {
+				throw new \RuntimeException( "Bad config file format: '$path'" );
+			}
+			$configs[] = $config;
+		}
+
+		// Pull in all `default` sections first.
+		// FIXME: The reverse thing is silly, but it's much simpler to merge
+		// the sources up front than keep them distinct and search through them
+		// at runtime for the first matching key.
+		foreach ( array_reverse( $configs ) as $config ) {
+			if ( isset( $config['default'] ) ) {
+				$this->override( $config['default'] );
+			}
+		}
+
+		// Now, go through in the same order and let all $view sections override
+		// defaults.
+		if ( $this->viewName !== 'default' ) {
+			foreach ( array_reverse( $configs ) as $config ) {
+				if ( isset( $config[$this->viewName] ) ) {
+					$this->override( $config[$this->viewName] );
+				}
+			}
+		}
+
+		// Store the configuration to cache, if possible
+		$this->saveConfigToCache( $paths );
+	}
+
+	/**
+	 * Flatten and unglob the search path.
+	 *
+	 * @param array $searchPath File paths or globs
+	 * @return array Actual files discovered in the path.
+	 */
+	protected function expandSearchPathToActual( $searchPath ) {
+		$paths = array_reduce( $searchPath, function ( $carry, $pattern ) {
+			$matchingPaths = glob( $pattern );
+			if ( $matchingPaths === false ) {
+				throw new \RuntimeException( "Illegal glob while matching {$pattern}" );
+			}
+			return array_merge( $carry, $matchingPaths );
+		}, array() );
+
+		return $paths;
 	}
 
 	/**
 	 * Override configuration with an array of data
 	 *
-	 * This should only be used in tests--note that these overrides take
-	 * precedence over every configuration file.
+	 * Note that these overrides take precedence over every configuration file,
+	 * so any usage outside of this class or tests will be subverting the
+	 * expected cascading priority.
 	 *
 	 * @param $data array
 	 */
@@ -129,32 +199,32 @@ class Configuration {
 	 * Loads a configuration file from the cache if it is still valid (ie: source files have not
 	 * changed)
 	 *
-	 * @param array  $searchPath    Paths we read from
-	 * @param string $view          The configuration view to load
+	 * TODO: Generalize to any caching backend.
+	 *
+	 * @param array  $paths    Paths we read from
 	 *
 	 * @return bool True if the config was loaded successfully.
 	 */
-	protected function loadConfigFromCache( $searchPath, $view ) {
-		$fileModifiedTimes = array();
-		foreach ( $searchPath as $path ) {
-			if ( file_exists( $path ) ) {
-				$fileModifiedTimes[] = filemtime( $path );
-			} else {
-				$fileModifiedTimes[] = 0;
-			}
+	protected function loadConfigFromCache( $paths ) {
+		if ( !$this->hasApc() ) {
+			return false;
 		}
 
-		// TODO: Cache the config for each installation's searchPath.
-		$cacheObj = apc_fetch( "smashpig-settings-{$view}", $success );
+		$fileModifiedTimes = array_map( function ( $path ) {
+			$fileModifiedTimes[] = filemtime( $path );
+		}, $paths );
+
+		// TODO: Cache the config for each installation's paths.
+		$cacheObj = apc_fetch( "smashpig-settings-{$this->viewName}", $success );
 
 		if ( !$success
 			|| empty( $cacheObj['configTimes'] )
-			|| empty( $cacheObj['searchPath'] )
+			|| empty( $cacheObj['paths'] )
 		) {
 			return false;
 		}
 
-		if ( implode( ':', $searchPath ) === $cacheObj['searchPath']
+		if ( implode( ':', $paths ) === $cacheObj['paths']
 			&& implode( ':', $fileModifiedTimes ) === $cacheObj['configTimes']
 		) {
 			// The cached values are valid
@@ -166,26 +236,33 @@ class Configuration {
 		return false;
 	}
 
+	protected function hasApc() {
+		static $useApc = null;
+		if ( $useApc === null ) {
+			$useApc = extension_loaded( 'apc' );
+		}
+		return $useApc;
+	}
+
 	/**
 	 * Saves the loaded configuration to the cache.
 	 *
-	 * @param array $searchPath Paths we read from
+	 * @param array $paths Paths we read from
 	 * @param string $node Node name that we're saving to cache
 	 */
-	protected function saveConfigToCache( $searchPath, $node ) {
-		$fileModifiedTimes = array();
-		foreach ( $searchPath as $path ) {
-			if ( file_exists( $path ) ) {
-				$fileModifiedTimes[] = filemtime( $path );
-			} else {
-				$fileModifiedTimes[] = 0;
-			}
+	protected function saveConfigToCache( $paths ) {
+		if ( !$this->hasApc() ) {
+			return;
 		}
 
+		$fileModifiedTimes = array_map( function ( $path ) {
+			$fileModifiedTimes[] = filemtime( $path );
+		}, $paths );
+
 		apc_store(
-			"smashpig-settings-{$node}",
+			"smashpig-settings-{$this->viewName}",
 			array(
-				 'searchPath' => implode( ':', $searchPath ),
+				 'paths' => implode( ':', $paths ),
 				 'configTimes' => implode( ':', $fileModifiedTimes ),
 				 'values' => $this->options,
 			)
@@ -198,9 +275,11 @@ class Configuration {
 	 *
 	 * @param string $node        Parameter node to obtain. If this contains '/' it is assumed that the
 	 *                            value is contained under additional keys.
-	 * @param bool   $returnRef   If true will return a reference to the configuration node. This will
+	 * @param bool $returnRef     If true will return a reference to the configuration node. This will
 	 *                            mean that any modifications to the node will be stored in RAM for the
 	 *                            duration of the session.
+	 * @return mixed
+	 * @throws ConfigurationKeyException
 	 */
 	public function &val( $node, $returnRef = false ) {
 		/*
@@ -244,7 +323,7 @@ class Configuration {
 	/**
 	 * Creates an object from the configuration file. This works by looking up the configuration
 	 * key name which will be an array with at least a subkey of 'class'. The class will then be
-	 * instantiated with any arguments as given in the subkey 'inst-args'.
+	 * instantiated with any arguments as given in the subkey 'constructor-parameters'.
 	 *
 	 * NOTE: This will return a reference to the object!
 	 *
@@ -253,37 +332,36 @@ class Configuration {
 	 * Example:
 	 * data_source:
 	 *      class: DataSourceClass
-	 *      inst-args:
+	 *      constructor-parameters:
 	 *          - argument1
 	 *          - foo/bar/baz
 	 *
 	 * @param string $node       Parameter node to obtain. If this contains '/'
 	 *                           it is assumed that the value is contained
 	 *                           under additional keys.
-	 * @param bool   $persistent If true the object is saved for future calls.
+	 * @param bool $persistent   If true the object is saved for future calls.
+	 * @return mixed|object
+	 * @throws ConfigurationKeyException
 	 */
 	public function &object( $node, $persistent = true ) {
 		// First look and see if we already have a $persistent object.
 		if ( array_key_exists( $node, $this->objects ) ) {
-			return $this->objects[ $node ];
+			return $this->objects[$node];
 		}
 
-		try {
-			$className = $this->val( $node . '/class' );
-			$arguments = $this->val( $node . '/inst-args' );
-		} catch ( ConfigurationKeyException $ex ) {
-			throw new ConfigurationKeyException(
-				"Could not instantiate class from key '{$node}'. Missing required key '{$ex->key}'",
-				$node,
-				$ex
-			);
+		$className = $this->val( $node . '/class' );
+
+		// Optional keys
+		$arguments = array();
+		if ( $this->nodeExists( $node . '/constructor-parameters' ) ) {
+			$arguments = $this->val( $node . '/constructor-parameters' );
 		}
 
 		$reflectedObj = new \ReflectionClass( $className );
 		$obj = $reflectedObj->newInstanceArgs( $arguments );
 
 		if ( $persistent ) {
-			$this->objects[ $node ] = $obj;
+			$this->objects[$node] = $obj;
 		}
 		return $obj;
 	}
@@ -291,7 +369,7 @@ class Configuration {
 	/**
 	 * Determine if a given configuration node exists in the loaded configuration.
 	 *
-	 * @param $node Node path; ie: logging/logstreams/syslog/class
+	 * @param string $node Node path; ie: logging/logstreams/syslog/class
 	 *
 	 * @return bool True if the node exists
 	 */
@@ -321,6 +399,7 @@ class Configuration {
 	 *
 	 * @param string $myRoot Internal recursion state: parent node path so far,
 	 * or empty string to begin.
+	 * @throws SmashPigException
 	 */
 	private static function treeMerge( &$base, $graft, $myRoot = '' ) {
 		foreach ( $graft as $graftNodeName => $graftNodeValue ) {
@@ -330,13 +409,10 @@ class Configuration {
 				$baseNodeRef = &$base[$graftNodeName];
 				// Nodes that are present in the base and in the graft
 
-				if (!self::isMergable($baseNodeRef, $graftNodeValue)) {
-					// Stop if types don't match.
-					throw new SmashPigException(
-						"Dissimilar types cannot be merged at configuration node {$node}." );
-				}
-
-				if ( is_array( $graftNodeValue ) ) {
+				if (
+					is_array( $graftNodeValue ) &&
+					self::isMergable( $baseNodeRef, $graftNodeValue )
+				) {
 					// Recursively merge arrays.
 					static::treeMerge( $baseNodeRef, $graftNodeValue, $node );
 				} else {
@@ -386,6 +462,8 @@ class ConfigurationException extends SmashPigException {
  * Exception thrown when a configuration key is not valid or has some other problem.
  */
 class ConfigurationKeyException extends ConfigurationException {
+	public $key;
+
 	public function __construct( $message = null, $key = null, $previous = null ) {
 		parent::__construct( $message, 0, $previous );
 		$this->key = $key;

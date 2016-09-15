@@ -2,8 +2,7 @@
 namespace SmashPig\Core\DataStores;
 
 use PDO;
-use SmashPig\Core\Configuration;
-use SmashPig\Core\Context;
+use RuntimeException;
 use SmashPig\Core\Logging\Logger;
 use SmashPig\Core\SmashPigException;
 use SmashPig\Core\UtcDate;
@@ -12,37 +11,7 @@ use SmashPig\CrmLink\Messages\DonationInterfaceMessage;
 /**
  * Data store containing messages waiting to be finalized.
  */
-class PendingDatabase {
-
-	/**
-	 * @var PDO
-	 * We do the silly singleton thing for convenient testing with in-memory
-	 * databases that would otherwise not be shared between components.
-	 */
-	protected static $db;
-
-	protected function __construct() {
-		$config = Context::get()->getConfiguration();
-		if ( !self::$db ) {
-			self::$db = $config->object( 'data-store/pending-db' );
-		}
-	}
-
-	/**
-	 * @return PDO
-	 */
-	public function getDatabase() {
-		return self::$db;
-	}
-
-	public static function get() {
-		$config = Context::get()->getConfiguration();
-		if ( $config->nodeExists( 'data-store/pending-db' ) ) {
-			// TODO: remove after transition to new pending queue
-			return new PendingDatabase();
-		}
-		return null;
-	}
+class PendingDatabase extends SmashPigDatabase {
 
 	protected function validateMessage( $message ) {
 		if (
@@ -116,11 +85,7 @@ class PendingDatabase {
 			where gateway = :gateway
 				and order_id = :order_id
 			limit 1' );
-		if ( !$prepared ) {
-			// TODO: remove after transition to new pending queue
-			// database exists but table is not yet set up
-			return null;
-		}
+
 		$prepared->bindValue( ':gateway', $gatewayName, PDO::PARAM_STR );
 		$prepared->bindValue( ':order_id', $orderId, PDO::PARAM_STR );
 		$prepared->execute();
@@ -209,49 +174,6 @@ class PendingDatabase {
 	}
 
 	/**
-	 * Ensure a smooth transition of pending message from ActiveMQ to database.
-	 * Log notices if entries differ between queue and db.
-	 * TODO: remove when ActiveMQ is gone
-	 *
-	 * @param DonationInterfaceMessage|null $queueMessage Message from ActiveMQ
-	 * @param array|null $dbMessage Normalized message from pending DB
-	 */
-	public static function comparePending( $queueMessage, $dbMessage ) {
-		if ( $dbMessage ) {
-			$id = $dbMessage['gateway'] . '-' . $dbMessage['order_id'];
-		} else if ( $queueMessage ) {
-			$id = $queueMessage->gateway . '-' . $queueMessage->order_id;
-		} else {
-			// neither exists, nothing to log
-			return;
-		}
-		$logger = Logger::getTaggedLogger( 'PendingComparison' );
-
-		if ( $queueMessage && $dbMessage ) {
-			$queueData = json_decode( $queueMessage->toJson(), true );
-			$differences = array_diff_assoc( $queueData, $dbMessage );
-			if ( $differences ) {
-				$logger->notice(
-					"Pending message for $id " .
-					'differs between ActiveMQ and pending database: ' .
-					json_encode( $differences, true )
-				);
-			}
-		} else if ( $queueMessage && !$dbMessage ) {
-			$logger->notice(
-				"Found pending message for $id " .
-				'in ActiveMQ but not in pending database.'
-			);
-		} else if ( $dbMessage && !$queueMessage ) {
-			$logger->notice(
-				"Found pending message for $id " .
-				'in pending database but not in ActiveMQ: ' .
-				json_encode( $dbMessage )
-			);
-		}
-	}
-
-	/**
 	 * @param array $fields
 	 * @return string SQL to insert a pending record, with parameters
 	 */
@@ -262,7 +184,7 @@ class PendingDatabase {
 		// Same as the field list, but each parameter is prefixed with a colon
 		$paramList = ':' . implode( ', :', $fields );
 
-		$insert = "INSERT INTO pending ( $fieldList ) VALUES ( $paramList );";
+		$insert = "INSERT INTO pending ( $fieldList ) VALUES ( $paramList )";
 		return $insert;
 	}
 
@@ -279,5 +201,13 @@ class PendingDatabase {
 			implode( ',', $sets ) .
 			' WHERE id = :id';
 		return $update;
+	}
+
+	protected function getConfigKey() {
+		return 'data-store/pending-db';
+	}
+
+	protected function getTableScriptFile() {
+		return '001_CreatePendingTable.sql';
 	}
 }
