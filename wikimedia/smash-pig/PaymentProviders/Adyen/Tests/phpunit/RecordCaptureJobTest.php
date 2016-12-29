@@ -26,7 +26,7 @@ class RecordCaptureJobTest extends BaseSmashPigUnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
-		$this->config = AdyenTestConfiguration::createWithSuccessfulApi();
+		$this->config = AdyenTestConfiguration::get( true );
 		Context::initWithLogger( $this->config );
 		$this->pendingDatabase = PendingDatabase::get();
 		$this->pendingMessage = json_decode(

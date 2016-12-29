@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS damaged (
+CREATE TABLE damaged (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `original_date` datetime NOT NULL,
   `damaged_date` datetime NOT NULL,

@@ -1,11 +1,10 @@
 adyen:
     data-store:
+        pending:
+            class: SmashPig\Tests\MockDataStore
 
-        payments-antifraud:
-            class: PHPQueue\Backend\PDO
-            constructor-parameters:
-                -
-                    connection_string: 'sqlite::memory:'
+        antifraud-stomp:
+            class: SmashPig\Tests\MockDataStore
 
         verified:
             class: PHPQueue\Backend\PDO
