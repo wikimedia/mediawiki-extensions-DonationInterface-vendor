@@ -5,11 +5,12 @@ use SmashPig\Core\DataStores\PendingDatabase;
 use SmashPig\Core\Jobs\RunnableJob;
 use SmashPig\Core\Logging\Logger;
 use SmashPig\CrmLink\Messages\DonationInterfaceMessage;
+use SmashPig\CrmLink\Messages\SourceFields;
 use SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\Capture;
 
 /**
  * Job that merges a capture IPN message from Adyen with donor info from the
- * pending queue, then places that into the verified queue.
+ * pending database, then places that into the verified queue.
  *
  * Class RecordCaptureJob
  *
@@ -44,9 +45,9 @@ class RecordCaptureJob extends RunnableJob {
 		);
 
 		$config = Configuration::getDefaultConfig();
-		// Find the details from the payment site in the pending queue.
-		$logger->debug( 'Attempting to locate associated message in pending database' );
 
+		// Find the details from the payment site in the pending database.
+		$logger->debug( 'Attempting to locate associated message in pending database' );
 		$db = PendingDatabase::get();
 		$dbMessage = $db->fetchMessageByGatewayOrderId( 'adyen', $this->merchantReference );
 
@@ -56,6 +57,7 @@ class RecordCaptureJob extends RunnableJob {
 			// Add the gateway transaction ID and send it to the completed queue
 			$dbMessage['gateway_txn_id'] = $this->originalReference;
 			$queueMessage = DonationInterfaceMessage::fromValues( $dbMessage );
+			SourceFields::addToMessage( $queueMessage );
 			$config->object( 'data-store/verified' )->push( $queueMessage );
 
 			// Remove it from the pending database
@@ -63,8 +65,13 @@ class RecordCaptureJob extends RunnableJob {
 			$db->deleteMessage( $dbMessage );
 
 		} else {
-			$logger->error(
-				"Could not find a processable message for authorization Reference '{$this->originalReference}' " .
+			// Sometimes we don't have a pending db row because the donor made
+			// multiple attempts with the same order ID. It would be nice if
+			// Adyen could prevent that, but let's not send a failmail since
+			// we'll eventually get the donor details from the payments log
+			// when we parse the audit.
+			$logger->warning(
+				"Could not find donor details for authorization Reference '{$this->originalReference}' " .
 					"and order ID '{$this->merchantReference}'.",
 				$dbMessage
 			);

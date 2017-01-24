@@ -5,9 +5,12 @@ use Exception;
 use InvalidArgumentException;
 use PHPQueue\Interfaces\AtomicReadBuffer;
 
+use SmashPig\Core\Configuration;
 use SmashPig\Core\Context;
 use SmashPig\Core\DataStores\DamagedDatabase;
 use SmashPig\Core\Logging\Logger;
+use SmashPig\Core\RetryableException;
+use SmashPig\Core\UtcDate;
 
 /**
  * Facilitates guaranteed message processing using PHPQueue's AtomicReadBuffer
@@ -98,6 +101,18 @@ abstract class BaseQueueConsumer {
 			}
 			$timeOk = $this->timeLimit === 0 || time() <= $startTime + $this->timeLimit;
 			$countOk = $this->messageLimit === 0 || $processed < $this->messageLimit;
+
+			$debugMessages = array();
+			if ( $data === null ) {
+				$debugMessages[] = 'Queue is empty.';
+			} else if ( !$timeOk ) {
+				$debugMessages[] = "Time limit ($this->timeLimit) is elapsed.";
+			} else if ( !$countOk ) {
+				$debugMessages[] = "Message limit ($this->messageLimit) is reached.";
+			}
+			if ( !empty( $debugMessages ) ) {
+				Logger::debug( implode( ' ', $debugMessages ) );
+			}
 		}
 		while( $timeOk && $countOk && $data !== null );
 		return $processed;
@@ -125,6 +140,21 @@ abstract class BaseQueueConsumer {
 	 * @param Exception $ex
 	 */
 	protected function handleError( $message, Exception $ex ) {
+		if ( $ex instanceof RetryableException ) {
+			$now = UtcDate::getUtcTimestamp();
+
+			if ( !isset( $message['source_enqueued_time'] ) ) {
+				$message['source_enqueued_time'] = UtcDate::getUtcTimestamp();
+			}
+			$expirationDate = $message['source_enqueued_time'] +
+				Configuration::getDefaultConfig()->val( 'requeue-max-age' );
+
+			if ( $now < $expirationDate ) {
+				$retryDate = $now + Configuration::getDefaultConfig()->val( 'requeue-delay' );
+				$this->sendToDamagedStore( $message, $ex, $retryDate );
+				return;
+			}
+		}
 		$this->sendToDamagedStore( $message, $ex );
 	}
 
@@ -137,11 +167,19 @@ abstract class BaseQueueConsumer {
 	protected function sendToDamagedStore(
 		$message, Exception $ex, $retryDate = null
 	) {
-		Logger::error(
-			'Error processing message, moving to damaged store.',
-			$message,
-			$ex
-		);
+		if ( $retryDate ) {
+			Logger::notice(
+				'Message not fully baked. Sticking it back in the oven, to ' .
+				"retry at $retryDate",
+				$message
+			);
+		} else {
+			Logger::error(
+				'Error processing message, moving to damaged store.',
+				$message,
+				$ex
+			);
+		}
 		return $this->damagedDb->storeMessage(
 			$message,
 			$this->queueName,
@@ -154,6 +192,7 @@ abstract class BaseQueueConsumer {
 	public static function getQueue( $queueName ) {
 		$config = Context::get()->getConfiguration();
 		$key = "data-store/$queueName";
+		Logger::debug( "Getting queue $queueName from key $key" );
 
 		// Get a reference to the config node so we can mess with it
 		$node =& $config->val( $key, true );
@@ -161,6 +200,7 @@ abstract class BaseQueueConsumer {
 			empty( $node['constructor-parameters'] ) ||
 			empty( $node['constructor-parameters'][0]['queue'] )
 		) {
+			Logger::debug( "'queue' not set, defaulting to $queueName" );
 			$node['constructor-parameters'][0]['queue'] = $queueName;
 		}
 

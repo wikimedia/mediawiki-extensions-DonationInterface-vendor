@@ -12,35 +12,21 @@ default:
                 host: 127.0.0.1
                 port: 6379
 
-        # Store definitions
-        inflight:
-            class: SmashPig\Core\DataStores\DiskFileDataStore
-            constructor-parameters:
-                - /tmp/
-
-        antifraud:
-            class: SmashPig\Core\DataStores\MultiQueueWriter
+        payments-antifraud:
+            class: PHPQueue\Backend\Predis
             constructor-parameters:
                 -
-                    - antifraud-stomp
-
-        antifraud-stomp:
-            class: SmashPig\Core\DataStores\StompDataStore
-            constructor-parameters:
-                - antifraud
+                    <<: *REDIS
+                    queue: payments-antifraud
 
         pending:
-            class: SmashPig\Core\DataStores\StompDataStore
-            constructor-parameters:
-                - pending
-
-        pending-new:
             class: PHPQueue\Backend\Predis
             constructor-parameters:
                 -
                     <<: *REDIS
                     queue: pending
 
+        # FIXME: Consolidate these two backends
         pending-db:
             class: PDO
             constructor-parameters:
@@ -56,60 +42,60 @@ default:
             constructor-parameters:
                 - 'mysql:host=127.0.0.1;dbname=fredge'
 
+        recurring:
+            class: SmashPig\Core\DataStores\MultiQueueWriter
+            constructor-parameters:
+                -
+                    - recurring-new
+
+        recurring-new:
+            class: PHPQueue\Backend\Predis
+            constructor-parameters:
+                -
+                    <<: *REDIS
+                    queue: recurring
+
         refund:
             class: SmashPig\Core\DataStores\MultiQueueWriter
             constructor-parameters:
                 -
-                    - refund-stomp
+                    - refund-new
 
-        refund-stomp:
-            class: SmashPig\Core\DataStores\StompDataStore
+        refund-new:
+            class: PHPQueue\Backend\Predis
             constructor-parameters:
-                - refund
+                -
+                    <<: *REDIS
+                    queue: refund
 
-        limbo:
-            class: SmashPig\Core\DataStores\StompDataStore
+        jobs-paypal:
+            class: PHPQueue\Backend\Predis
             constructor-parameters:
-                - limbo
+                -
+                    <<: *REDIS
+                    # FIXME: This queue thing is introspected at times, and at
+                    # others not.  Make it consistent (and invisible).
+                    queue: jobs-paypal
 
-        jobs-damaged:
-            class: SmashPig\Core\DataStores\StompDataStore
+        jobs-adyen:
+            class: PHPQueue\Backend\Predis
             constructor-parameters:
-                - jobs-damaged
-
-        jobs:
-            class: SmashPig\Core\DataStores\StompDataStore
-            constructor-parameters:
-                - jobs
+                -
+                    <<: *REDIS
+                    queue: jobs-adyen
 
         verified:
             class: SmashPig\Core\DataStores\MultiQueueWriter
             constructor-parameters:
                 -
-                    - verified-stomp
+                    - donations
 
-        verified-stomp:
-            class: SmashPig\Core\DataStores\StompDataStore
+        donations:
+            class: PHPQueue\Backend\Predis
             constructor-parameters:
-                - verified
-
-        # Library definitions
-        stomp:
-            uri: tcp://localhost:61613
-            timeout: 1
-            refresh-connection: false
-            convert-string-expressions: false
-
-            queues:
-                antifraud: /queue/payments-antifraud
-                limbo: /queue/limbo
-                verified: /queue/donations
-                failed: /queue/failed
-                pending: /queue/pending
-                pending-damaged: /queue/pending-damaged
-                refund: /queue/refund
-                jobs: /queue/job-requests
-                jobs-damaged: /queue/jobs-requests-damaged
+                -
+                    <<: *REDIS
+                    queue: donations
 
     logging:
         root-context: SmashPig
@@ -161,6 +147,11 @@ default:
         consume-pending:
             time-limit: 60
             max-messages: 0
+
+    # in seconds
+    requeue-delay: 1200
+
+    requeue-max-age: 12000
 
 adyen:
     logging:
@@ -285,6 +276,7 @@ adyen:
 
 amazon:
     actions:
+        - SmashPig\PaymentProviders\Amazon\Actions\ReconstructMerchantReference
         - SmashPig\PaymentProviders\Amazon\Actions\CloseOrderReference
         - SmashPig\PaymentProviders\Amazon\Actions\AssociateRefundParent
         - SmashPig\PaymentProviders\Amazon\Actions\AddMessageToQueue
@@ -339,15 +331,78 @@ astropay:
     charset: iso-8859-1
 
 paypal:
-    listener:
-        # For testing purposes override this entry with
-        # postback-url: https://www.sandbox.paypal.com/cgi-bin/webscr
-        postback-url: https://www.paypal.com/cgi-bin/webscr
+    api:
+        class: SmashPig\PaymentProviders\PayPal\PayPalPaymentsAPI
 
-    data-store:
-        stomp:
-            queues:
-                pending: /queue/pending_paypal
+    endpoints:
+        listener:
+            class: SmashPig\PaymentProviders\PayPal\Listener
+
+    # For testing, override with
+    # postback-url: https://ipnpb.sandbox.paypal.com/cgi-bin/webscr
+    postback-url: https://ipnpb.paypal.com/cgi-bin/webscr
+
+    var_map:
+        payment_date: date # needs strtotime(payment_date)
+        # FIXME Recurring messages use non-normalized field names, for example:
+        txn_type: txn_type
+        parent_txn_id: gateway_parent_id
+        txn_id: gateway_txn_id
+        # FIXME This is only true for refund messages.  Where to represent?
+        #txn_id: gateway_refund_id
+        mc_currency: currency
+        # FIXME rename refund_type
+        reason_code: type
+        #test_ipn:  # signals test mode
+        custom: contribution_tracking_id
+        payer_email: email
+        first_name: first_name
+        last_name: last_name
+        # FIXME this used to get split up
+        address_street: street_address
+        address_city: city
+        address_state: state_province
+        address_country_code: country
+        address_zip: postal_code
+        # FIXME this too
+        address_name: supplemental_address_1
+        gateway: gateway
+        mc_gross: gross
+        mc_fee: fee
+
+    rejects:
+        txn_type: new_case
+
+    messages:
+        verified:
+            valid_statuses: # TODO is this message type agnostic?
+                - Completed
+                - Reversed
+            txn_types:
+                - cart
+                - send_money
+                - web_accept
+                - merch_pmt
+                - express_checkout
+                - masspay
+                - virtual_terminal
+        recurring:
+            txn_types:
+                - recurring_payment_profile_created
+                - subscr_cancel
+                - subscr_eot
+                - subscr_failed
+                - subscr_modify
+                - subscr_signup
+                # the following mean we got money \o/
+                - recurring_payment
+                - subscr_payment
+        refund:
+            txn_types:
+                - adjustment
+                - refund
+                # FIXME: if case_type=chargeback, then txn_type might be blank
+                # and the message should go to the refund queue.
 
 globalcollect:
     actions:
@@ -356,8 +411,3 @@ globalcollect:
     endpoints:
         listener:
             class: SmashPig\PaymentProviders\GlobalCollect\GlobalCollectListener
-
-    data-store:
-        stomp:
-            queues:
-                pending: /queue/pending_globalcollect

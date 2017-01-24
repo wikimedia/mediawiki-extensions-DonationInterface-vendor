@@ -6,7 +6,6 @@ use SmashPig\Core\Context;
 use SmashPig\Core\DataStores\PaymentsInitialDatabase;
 use SmashPig\Core\DataStores\PendingDatabase;
 use SmashPig\Core\QueueConsumers\PendingQueueConsumer;
-use SmashPig\Tests\PaymentsInitialDatabaseTest;
 
 class PendingQueueConsumerTest extends BaseSmashPigUnitTestCase {
 
@@ -50,7 +49,7 @@ class PendingQueueConsumerTest extends BaseSmashPigUnitTestCase {
 	 * table.
 	 */
 	public function testPendingMessageNotInInitial() {
-		$consumer = new PendingQueueConsumer( 'pending-new', 1000, 1000 );
+		$consumer = new PendingQueueConsumer( 'pending', 1000, 1000 );
 		$message = self::generateRandomPendingMessage();
 
 		$consumer->processMessage( $message );
@@ -77,7 +76,7 @@ class PendingQueueConsumerTest extends BaseSmashPigUnitTestCase {
 		$this->paymentsInitialDb->storeMessage( $initRow );
 
 		$message = self::generatePendingMessageFromInitial( $initRow );
-		$consumer = new PendingQueueConsumer( 'pending-new', 1000, 1000 );
+		$consumer = new PendingQueueConsumer( 'pending', 1000, 1000 );
 
 		$consumer->processMessage( $message );
 
@@ -94,38 +93,17 @@ class PendingQueueConsumerTest extends BaseSmashPigUnitTestCase {
 
 	/**
 	 * We refuse to consume a message and drop it if the corresponding
-	 * payments_initial row is completed.
-	 */
-	public function testPendingMessageInitialCompleted() {
-		$initRow = PaymentsInitialDatabaseTest::generateTestMessage();
-		$initRow['payments_final_status'] = 'completed';
-
-		$this->paymentsInitialDb->storeMessage( $initRow );
-
-		$message = self::generatePendingMessageFromInitial( $initRow );
-		$consumer = new PendingQueueConsumer( 'pending-new', 1000, 1000 );
-
-		$consumer->processMessage( $message );
-
-		$fetched = $this->pendingDb->fetchMessageByGatewayOrderId(
-			$message['gateway'], $message['order_id'] );
-
-		$this->assertNull( $fetched,
-			'Message consumed and not stored in the pending database.' );
-	}
-
-	/**
-	 * We refuse to consume a message and drop it if the corresponding
 	 * payments_initial row is failed.
 	 */
 	public function testPendingMessageInitialFailed() {
 		$initRow = PaymentsInitialDatabaseTest::generateTestMessage();
 		$initRow['payments_final_status'] = 'failed';
+		$initRow['validation_action'] = 'reject';
 
 		$this->paymentsInitialDb->storeMessage( $initRow );
 
 		$message = self::generatePendingMessageFromInitial( $initRow );
-		$consumer = new PendingQueueConsumer( 'pending-new', 1000, 1000 );
+		$consumer = new PendingQueueConsumer( 'pending', 1000, 1000 );
 
 		$consumer->processMessage( $message );
 

@@ -4,7 +4,6 @@ namespace SmashPig\Maintenance;
 require ( 'MaintenanceBase.php' );
 
 use SmashPig\Core\Logging\Logger;
-use SmashPig\Core\DataStores\PendingDatabase;
 use SmashPig\Core\QueueConsumers\PendingQueueConsumer;
 
 $maintClass = '\SmashPig\Maintenance\ConsumePendingQueue';
@@ -14,14 +13,9 @@ $maintClass = '\SmashPig\Maintenance\ConsumePendingQueue';
  */
 class ConsumePendingQueue extends MaintenanceBase {
 
-	/**
-	 * @var PendingDatabase
-	 */
-	protected $pendingDatabase;
-
 	public function __construct() {
 		parent::__construct();
-		$this->addOption( 'queue', 'queue name to consume from', 'pending-new' );
+		$this->addOption( 'queue', 'queue name to consume from', 'pending' );
 		$this->addOption( 'time-limit', 'Try to keep execution under <n> seconds', 60, 't' );
 		$this->addOption( 'max-messages', 'At most consume <n> messages', 0, 'm' );
 	}

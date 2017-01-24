@@ -2,6 +2,7 @@
 
 use SmashPig\Core\DataStores\PaymentsInitialDatabase;
 use SmashPig\Core\DataStores\PendingDatabase;
+use SmashPig\Core\Logging\Logger;
 
 class PendingQueueConsumer extends BaseQueueConsumer {
 
@@ -22,9 +23,14 @@ class PendingQueueConsumer extends BaseQueueConsumer {
 	}
 
 	public function processMessage( $message ) {
-		if ( !$this->paymentsInitialDatabase->isTransactionFinalized( $message ) ) {
-			// Throw the message out if it's already completed or failed, and
-			// exists in the fredge database.
+		$logIdentifier = "message with gateway {$message['gateway']}" .
+			" and order ID {$message['order_id']}";
+
+		if ( $this->paymentsInitialDatabase->isTransactionFailed( $message ) ) {
+			// Throw the message out if it's already failed
+			Logger::info( "Skipping failed $logIdentifier" );
+		} else {
+			Logger::info( "Storing $logIdentifier in database" );
 			$this->pendingDatabase->storeMessage( $message );
 		}
 	}

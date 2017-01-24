@@ -6,7 +6,6 @@ use RuntimeException;
 use SmashPig\Core\Logging\Logger;
 use SmashPig\Core\SmashPigException;
 use SmashPig\Core\UtcDate;
-use SmashPig\CrmLink\Messages\DonationInterfaceMessage;
 
 /**
  * Data store containing messages waiting to be finalized.
@@ -30,7 +29,6 @@ class PendingDatabase extends SmashPigDatabase {
 	 * Build and insert a database record from a pending queue message
 	 *
 	 * @param array $message
-	 * @throws SmashPigException
 	 */
 	public function storeMessage( $message ) {
 		$this->validateMessage( $message );
@@ -53,23 +51,13 @@ class PendingDatabase extends SmashPigDatabase {
 		// Dump the whole message into a text column
 		$dbRecord['message'] = json_encode( $message );
 
-		$fields = array_keys( $dbRecord );
 		if ( isset( $message['pending_id'] ) ) {
-			$sql = $this->getUpdateStatement( $fields );
+			$sql = $this->getUpdateStatement( $dbRecord );
 			$dbRecord['id'] = $message['pending_id'];
 		} else {
-			$sql = $this->getInsertStatement( $fields );
+			$sql = $this->getInsertStatement( $dbRecord );
 		}
-		$prepared = self::$db->prepare( $sql );
-
-		foreach ( $dbRecord as $field => $value ) {
-			$prepared->bindValue(
-				':' . $field,
-				$value,
-				PDO::PARAM_STR
-			);
-		}
-		$prepared->execute();
+		$this->prepareAndExecute( $sql, $dbRecord );
 	}
 
 	/**
@@ -80,20 +68,17 @@ class PendingDatabase extends SmashPigDatabase {
 	 * @return array|null Record related to a transaction, or null if nothing matches
 	 */
 	public function fetchMessageByGatewayOrderId( $gatewayName, $orderId ) {
-		$prepared = self::$db->prepare( '
-			select * from pending
+		$sql = 'select * from pending
 			where gateway = :gateway
 				and order_id = :order_id
-			limit 1' );
-		if ( !$prepared ) {
-			// TODO: remove after transition to new pending queue
-			// database exists but table is not yet set up
-			return null;
-		}
-		$prepared->bindValue( ':gateway', $gatewayName, PDO::PARAM_STR );
-		$prepared->bindValue( ':order_id', $orderId, PDO::PARAM_STR );
-		$prepared->execute();
-		$row = $prepared->fetch( PDO::FETCH_ASSOC );
+			limit 1';
+
+		$params = array(
+			'gateway' => $gatewayName,
+			'order_id' => $orderId,
+		);
+		$executed = $this->prepareAndExecute( $sql, $params );
+		$row = $executed->fetch( PDO::FETCH_ASSOC );
 		if ( !$row ) {
 			return null;
 		}
@@ -107,14 +92,14 @@ class PendingDatabase extends SmashPigDatabase {
 	 * @return array|null Message or null if nothing is found.
 	 */
 	public function fetchMessageByGatewayOldest( $gatewayName ) {
-		$prepared = self::$db->prepare( '
-			select * from pending
+		$sql = 'select * from pending
 			where gateway = :gateway
 			order by date asc
-			limit 1' );
-		$prepared->bindValue( ':gateway', $gatewayName, PDO::PARAM_STR );
-		$prepared->execute();
-		$row = $prepared->fetch( PDO::FETCH_ASSOC );
+			limit 1';
+
+		$params = array( 'gateway' => $gatewayName );
+		$executed = $this->prepareAndExecute( $sql, $params );
+		$row = $executed->fetch( PDO::FETCH_ASSOC );
 		if ( !$row ) {
 			return null;
 		}
@@ -129,14 +114,14 @@ class PendingDatabase extends SmashPigDatabase {
 	 * @return array|null Messages or null if nothing is found.
 	 */
 	public function fetchMessagesByGatewayNewest( $gatewayName, $limit = 1 ) {
-		$prepared = self::$db->prepare( "
+		$sql = "
 			select * from pending
 			where gateway = :gateway
 			order by date desc
-			limit $limit" );
-		$prepared->bindValue( ':gateway', $gatewayName, PDO::PARAM_STR );
-		$prepared->execute();
-		$rows = $prepared->fetchAll( PDO::FETCH_ASSOC );
+			limit $limit";
+		$params = array( 'gateway' => $gatewayName );
+		$executed = $this->prepareAndExecute( $sql, $params );
+		$rows = $executed->fetchAll( PDO::FETCH_ASSOC );
 		if ( !$rows ) {
 			return null;
 		}
@@ -156,16 +141,41 @@ class PendingDatabase extends SmashPigDatabase {
 	 */
 	public function deleteMessage( $message ) {
 		if ( !isset( $message['order_id'] ) ) {
-			throw new RuntimeException( 'Message doesn\'t have an order_id!' );
+			$json = json_encode( $message );
+			Logger::warning( "Trying to delete pending message with no order id: $json" );
+			return;
 		}
 
-		$prepared = self::$db->prepare( '
+		$sql = '
 			delete from pending
 			where gateway = :gateway
-				and order_id = :order_id' );
-		$prepared->bindValue( ':gateway', $message['gateway'], PDO::PARAM_STR );
-		$prepared->bindValue( ':order_id', $message['order_id'], PDO::PARAM_STR );
-		$prepared->execute();
+				and order_id = :order_id';
+		$params = array(
+			'gateway' => $message['gateway'],
+			'order_id' => $message['order_id'],
+		);
+
+		$this->prepareAndExecute( $sql, $params );
+	}
+
+	/**
+	 * Delete expired messages, optionally by gateway
+	 *
+	 * @param int $originalDate Oldest date to keep
+	 * @param string|null $gateway
+	 * @return int Number of rows deleted
+	 */
+	public function deleteOldMessages( $originalDate, $gateway = null ) {
+		$sql = 'DELETE FROM pending WHERE date < :date';
+		$params = array(
+			'date' => UtcDate::getUtcDatabaseString( $originalDate ),
+		);
+		if ( $gateway ) {
+			$sql .= ' AND gateway = :gateway';
+			$params['gateway'] = $gateway;
+		}
+		$executed = $this->prepareAndExecute( $sql, $params );
+		return $executed->rowCount();
 	}
 
 	/**
@@ -178,78 +188,25 @@ class PendingDatabase extends SmashPigDatabase {
 	}
 
 	/**
-	 * Ensure a smooth transition of pending message from ActiveMQ to database.
-	 * Log notices if entries differ between queue and db.
-	 * TODO: remove when ActiveMQ is gone
-	 *
-	 * @param DonationInterfaceMessage|null $queueMessage Message from ActiveMQ
-	 * @param array|null $dbMessage Normalized message from pending DB
-	 */
-	public static function comparePending( $queueMessage, $dbMessage ) {
-		if ( $dbMessage ) {
-			$id = $dbMessage['gateway'] . '-' . $dbMessage['order_id'];
-		} else if ( $queueMessage ) {
-			$id = $queueMessage->gateway . '-' . $queueMessage->order_id;
-		} else {
-			// neither exists, nothing to log
-			return;
-		}
-		$logger = Logger::getTaggedLogger( 'PendingComparison' );
-
-		if ( $queueMessage && $dbMessage ) {
-			$queueData = json_decode( $queueMessage->toJson(), true );
-			unset( $queueData['correlationId'] );
-			unset( $queueData['propertiesExportedAsKeys'] );
-			unset( $queueData['propertiesExcludedFromExport'] );
-			foreach ( array_keys( $queueData ) as $key ) {
-				if ( $queueData[$key] === '' && !isset( $dbMessage[$key] ) ) {
-					unset ( $queueData[$key] );
-				}
-			}
-			$differences = array_diff_assoc( $queueData, $dbMessage );
-			if ( $differences ) {
-				$logger->notice(
-					"Pending message for $id " .
-					'differs between ActiveMQ and pending database: ' .
-					json_encode( $differences, true )
-				);
-			}
-		} else if ( $queueMessage && !$dbMessage ) {
-			$logger->notice(
-				"Found pending message for $id " .
-				'in ActiveMQ but not in pending database.'
-			);
-		} else if ( $dbMessage && !$queueMessage ) {
-			$logger->notice(
-				"Found pending message for $id " .
-				'in pending database but not in ActiveMQ: ' .
-				json_encode( $dbMessage )
-			);
-		}
-	}
-
-	/**
-	 * @param array $fields
+	 * @param array $record
 	 * @return string SQL to insert a pending record, with parameters
 	 */
-	protected function getInsertStatement( $fields ) {
-		$fieldList = implode( ',', $fields );
-
-		// Build a list of parameter names for safe db insert
-		// Same as the field list, but each parameter is prefixed with a colon
-		$paramList = ':' . implode( ', :', $fields );
+	protected function getInsertStatement( $record ) {
+		list( $fieldList, $paramList ) = self::formatInsertParameters(
+			$record
+		);
 
 		$insert = "INSERT INTO pending ( $fieldList ) VALUES ( $paramList )";
 		return $insert;
 	}
 
 	/**
-	 * @param array $fields
+	 * @param array $record
 	 * @return string SQL to update a pending record, with parameters
 	 */
-	protected function getUpdateStatement( $fields ) {
+	protected function getUpdateStatement( $record ) {
 		$sets = array();
-		foreach( $fields as $field ) {
+		foreach( array_keys( $record ) as $field ) {
 			$sets[] = "$field = :$field";
 		}
 		$update = 'UPDATE pending SET ' .

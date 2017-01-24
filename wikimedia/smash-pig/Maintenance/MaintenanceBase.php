@@ -132,7 +132,7 @@ abstract class MaintenanceBase {
 		// --- Initialize core services ---
 		$configNode = $this->getOption( 'config-node' );
 		$configFile = $this->getOption( 'config-file' );
-		$config = Configuration::createFromViewWithOverrideFile( $configNode, $configFile );
+		$config = Configuration::createForViewWithOverrideFile( $configNode, $configFile );
 		Context::init( $config );
 		Logger::init(
 			$config->val( 'logging/root-context' ) . '-' . end( explode( "\\", $maintClass ) ),
@@ -158,7 +158,7 @@ abstract class MaintenanceBase {
 	 */
 	protected function addDefaultParams() {
 		$this->addOption( 'help', 'Display this help message', null, 'h' );
-		# FIXME: default to null, not magic empty string to trigger bad argv code.
+		// FIXME: default to null, not magic empty string to trigger bad argv code.
 		$this->addOption( 'config-file', 'Path to additional configuration file', '' );
 		$this->addOption( 'config-node',
 			'Specific configuration node to load, if not default', 'default' );
