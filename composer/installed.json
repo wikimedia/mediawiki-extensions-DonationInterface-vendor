@@ -913,13 +913,108 @@
         "homepage": "https://symfony.com"
     },
     {
+        "name": "psr/cache",
+        "version": "1.0.1",
+        "version_normalized": "1.0.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/php-fig/cache.git",
+            "reference": "d11b50ad223250cf17b86e38383413f5a6764bf8"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/php-fig/cache/zipball/d11b50ad223250cf17b86e38383413f5a6764bf8",
+            "reference": "d11b50ad223250cf17b86e38383413f5a6764bf8",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2016-08-06 20:24:11",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Psr\\Cache\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "PHP-FIG",
+                "homepage": "http://www.php-fig.org/"
+            }
+        ],
+        "description": "Common interface for caching libraries",
+        "keywords": [
+            "cache",
+            "psr",
+            "psr-6"
+        ]
+    },
+    {
+        "name": "addshore/psr-6-mediawiki-bagostuff-adapter",
+        "version": "0.1",
+        "version_normalized": "0.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/addshore/psr-6-mediawiki-bagostuff-adapter.git",
+            "reference": "92f3bb69bf3e7f51b8b66ae74b6a4a291637354c"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/addshore/psr-6-mediawiki-bagostuff-adapter/zipball/92f3bb69bf3e7f51b8b66ae74b6a4a291637354c",
+            "reference": "92f3bb69bf3e7f51b8b66ae74b6a4a291637354c",
+            "shasum": ""
+        },
+        "require": {
+            "psr/cache": "^1.0.0"
+        },
+        "require-dev": {
+            "cache/integration-tests": "~0.9.1",
+            "jakub-onderka/php-parallel-lint": "^0.9.2",
+            "mediawiki/mediawiki-codesniffer": "^0.7.2",
+            "phpunit/phpunit": "~4.8.0|~5.3.0"
+        },
+        "time": "2017-02-16 14:33:59",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Addshore\\Psr\\Cache\\MWBagOStuffAdapter\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "GPL-2.0+"
+        ],
+        "authors": [
+            {
+                "name": "Addshore"
+            }
+        ],
+        "description": "A MediaWiki BagOStuff PSR-6 adapter library",
+        "keywords": [
+            "cache",
+            "mediawiki"
+        ]
+    },
+    {
         "name": "wikimedia/smash-pig",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://gerrit.wikimedia.org/r/wikimedia/fundraising/SmashPig.git",
-            "reference": "61968f71b16f69ae96e327c44b0f7aa22fdf7a13"
+            "reference": "4625e68bd0fde15a2dc3ff646cc01bcd4325d8fc"
         },
         "require": {
             "amzn/login-and-pay-with-amazon-sdk-php": "dev-master",
@@ -927,6 +1022,7 @@
             "php": ">=5.3.3",
             "phpmailer/phpmailer": "^5.2",
             "predis/predis": "^1.1",
+            "psr/cache": "^1.0",
             "symfony/event-dispatcher": "^2.1",
             "symfony/http-foundation": "^2.1",
             "symfony/yaml": "^2.8"
@@ -935,7 +1031,7 @@
             "jakub-onderka/php-parallel-lint": "^0.9",
             "phpunit/phpunit": "^4.8"
         },
-        "time": "2017-01-18 00:42:59",
+        "time": "2017-02-23 20:48:06",
         "type": "library",
         "installation-source": "source",
         "autoload": {
