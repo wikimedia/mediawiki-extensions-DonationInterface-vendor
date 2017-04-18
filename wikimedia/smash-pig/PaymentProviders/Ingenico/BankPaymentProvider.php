@@ -2,9 +2,9 @@
 
 namespace SmashPig\PaymentProviders\Ingenico;
 
-use SmashPig\Core\Context;
 use Psr\Cache\CacheItemPoolInterface;
-use SmashPig\Core\Http\OutboundRequest;
+use SmashPig\Core\Context;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Handle bank payments via Ingenico
@@ -24,15 +24,9 @@ class BankPaymentProvider extends IngenicoPaymentProvider {
 	 */
 	protected $cache;
 
-	/**
-	 * @var array()
-	 */
-	protected $availabilityParameters;
-
 	public function __construct( array $options = array() ) {
 		parent::__construct( $options );
 		$this->cacheParameters = $options['cache-parameters'];
-		$this->availabilityParameters = $options['availability-parameters'];
 		// FIXME: provide objects in constructor
 		$config = Context::get()->getConfiguration();
 		$this->cache = $config->object( 'cache' );
@@ -52,39 +46,27 @@ class BankPaymentProvider extends IngenicoPaymentProvider {
 		$cacheItem = $this->cache->getItem( $cacheKey );
 
 		if ( !$cacheItem->isHit() || $this->shouldBeExpired( $cacheItem ) ) {
-			/*$query = array(
+			$query = array(
 				'countryCode' => $country,
 				'currencyCode' => $currency
 			);
 			$path = "products/$productId/directory";
-			$response = $this->api->makeApiCall( $path, 'GET', $query );
-
 			$banks = array();
 
-			foreach ( $response['entries'] as $entry ) {
-				$banks[$entry['issuerId']] = $entry['issuerName'];
-			}*/
+			try {
+				$response = $this->api->makeApiCall( $path, 'GET', $query );
 
-			$banks = array();
-
-			// HAAACK!
-			// Use undocumented API to get availability straight from iDEAL,
-			// until Ingenico can incorporate this into their directory
-			if ( $country === 'NL' && $currency === 'EUR' ) {
-				$url = $this->availabilityParameters['url'];
-				$threshold = $this->availabilityParameters['threshold'];
-
-				$request = new OutboundRequest( $url );
-				$rawResponse = $request->execute();
-				$response = json_decode( $rawResponse['body'], true );
-
-				foreach ( $response['Issuers'] as $issuer ) {
-					if ( $issuer['Percent'] >= $threshold ) {
-						$banks[$issuer['BankId']] = $issuer['BankName'];
-					}
+				foreach ( $response['entries'] as $entry ) {
+					$banks[$entry['issuerId']] = $entry['issuerName'];
 				}
+			} catch ( ApiException $ex ) {
+				$errors = $ex->getRawErrors();
+				if ( empty( $errors ) || $errors[0]['httpStatusCode'] !== Response::HTTP_NOT_FOUND ) {
+					throw $ex;
+				}
+				// If there is a single 404 error, that means there is no directory info for
+				// the country/currency/product. That's legitimate, so cache the empty array
 			}
-
 			$duration = $this->cacheParameters['duration'];
 			$cacheItem->set( array(
 				'value' => $banks,
