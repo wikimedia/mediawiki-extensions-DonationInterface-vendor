@@ -215,8 +215,6 @@ return array(
     'PHPQueue\\Interfaces\\Auth' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/Auth.php',
     'PHPQueue\\Interfaces\\Config' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/Config.php',
     'PHPQueue\\Interfaces\\FifoQueueStore' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/FifoQueueStore.php',
-    'PHPQueue\\Interfaces\\IndexedFifoQueueStore' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/IndexedFifoQueueStore.php',
-    'PHPQueue\\Interfaces\\KeyValueStore' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/KeyValueStore.php',
     'PHPQueue\\Job' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Job.php',
     'PHPQueue\\JobQueue' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/JobQueue.php',
     'PHPQueue\\Json' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Json.php',

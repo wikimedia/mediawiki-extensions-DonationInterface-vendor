@@ -331,8 +331,6 @@ class ComposerStaticInit496326f024bb73fb2c54d7fcabb5462e
         'PHPQueue\\Interfaces\\Auth' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/Auth.php',
         'PHPQueue\\Interfaces\\Config' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/Config.php',
         'PHPQueue\\Interfaces\\FifoQueueStore' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/FifoQueueStore.php',
-        'PHPQueue\\Interfaces\\IndexedFifoQueueStore' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/IndexedFifoQueueStore.php',
-        'PHPQueue\\Interfaces\\KeyValueStore' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Interfaces/KeyValueStore.php',
         'PHPQueue\\Job' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Job.php',
         'PHPQueue\\JobQueue' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/JobQueue.php',
         'PHPQueue\\Json' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Json.php',
