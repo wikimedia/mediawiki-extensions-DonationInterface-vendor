@@ -4,8 +4,9 @@ namespace SmashPig\PaymentProviders\Adyen\Tests;
 use PHPQueue\Interfaces\FifoQueueStore;
 use SmashPig\Core\Configuration;
 use SmashPig\Core\Context;
-use SmashPig\Core\QueueConsumers\BaseQueueConsumer;
+use SmashPig\Core\DataStores\QueueWrapper;
 use SmashPig\Core\UtcDate;
+use SmashPig\CrmLink\Messages\SourceFields;
 use SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\ReportAvailable;
 use SmashPig\Tests\BaseSmashPigUnitTestCase;
 
@@ -24,7 +25,7 @@ class ReportAvailableTest extends BaseSmashPigUnitTestCase {
 		parent::setUp();
 		$this->config = AdyenTestConfiguration::createWithSuccessfulApi();
 		Context::initWithLogger( $this->config );
-		$this->jobQueue = BaseQueueConsumer::getQueue( 'jobs-adyen' );
+		$this->jobQueue = QueueWrapper::getQueue( 'jobs-adyen' );
 		$this->jobQueue->createTable( 'jobs-adyen' );
 	}
 
@@ -34,7 +35,6 @@ class ReportAvailableTest extends BaseSmashPigUnitTestCase {
 		$url = "https://example.com/reports/download/MerchantAccount/$account/$filename";
 		$reportAvailable = new ReportAvailable();
 
-		$reportAvailable->correlationId = 'adyen-' . mt_rand();
 		$reportAvailable->merchantAccountCode = $account;
 		$reportAvailable->merchantReference = mt_rand();
 		$reportAvailable->pspReference = $filename;
@@ -48,21 +48,12 @@ class ReportAvailableTest extends BaseSmashPigUnitTestCase {
 		$now = UtcDate::getUtcTimestamp();
 		$diff = abs( $job['source_enqueued_time'] ) - $now;
 		$this->assertTrue( $diff < 60, 'Odd enqueued time' );
-		$unsetFields = array(
-			'source_enqueued_time', 'source_host', 'source_run_id',
-			'source_version', 'propertiesExcludedFromExport',
-			'propertiesExportedAsKeys',
-		);
-		foreach ( $unsetFields as $fieldName ) {
-			unset( $job[$fieldName] );
-		}
+		SourceFields::removeFromMessage( $job );
+		unset( $job['propertiesExcludedFromExport'] );
 		$expected = array(
 			'php-message-class' => 'SmashPig\PaymentProviders\Adyen\Jobs\DownloadReportJob',
 			'reportUrl' => $url,
 			'account' => $account,
-			'source_name' => 'SmashPig',
-			'source_type' => 'listener',
-			'correlationId' => '',
 			'gateway' => 'adyen',
 		);
 		$this->assertEquals( $expected, $job );

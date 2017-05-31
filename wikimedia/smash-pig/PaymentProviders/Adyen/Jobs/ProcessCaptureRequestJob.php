@@ -2,6 +2,7 @@
 
 use SmashPig\Core\Configuration;
 use SmashPig\Core\DataStores\PendingDatabase;
+use SmashPig\Core\DataStores\QueueWrapper;
 use SmashPig\Core\Jobs\RunnableJob;
 use SmashPig\Core\Logging\Logger;
 use SmashPig\Core\Logging\TaggedLogger;
@@ -42,7 +43,6 @@ class ProcessCaptureRequestJob extends RunnableJob {
 	public static function factory( Authorisation $authMessage ) {
 		$obj = new ProcessCaptureRequestJob();
 
-		$obj->correlationId = $authMessage->correlationId;
 		$obj->account = $authMessage->merchantAccountCode;
 		$obj->currency = $authMessage->currency;
 		$obj->amount = $authMessage->amount;
@@ -55,14 +55,14 @@ class ProcessCaptureRequestJob extends RunnableJob {
 	}
 
 	public function execute() {
-		$this->logger = Logger::getTaggedLogger( "corr_id-{$this->correlationId}" );
+		$this->logger = Logger::getTaggedLogger( "psp_ref-{$this->pspReference}" );
 		$this->logger->info(
-			"Running capture request job on account '{$this->account}' with reference '{$this->pspReference}' " .
-			"and correlation id '{$this->correlationId}'."
+			"Running capture request job on account '{$this->account}'" .
+			"with reference '{$this->pspReference}'."
 		);
 
 		// Determine if a message exists in the pending database; if it does not then
-		// this payment has already been sent to the verified queue, or there is a
+		// this payment has already been sent to the donations queue, or there is a
 		// problem with the database. If it does exist, we need to check
 		// $capture_requested in case we have requested a capture but have not yet
 		// received notification of capture success. Either case can occur when a
@@ -193,9 +193,7 @@ class ProcessCaptureRequestJob extends RunnableJob {
 			$dbMessage, $riskScore, $scoreBreakdown, $action
 		);
 		$this->logger->debug( "Sending antifraud message with risk score $riskScore and action $action." );
-		Configuration::getDefaultConfig()
-			->object( 'data-store/payments-antifraud' )
-			->push( $antifraudMessage );
+		QueueWrapper::push( 'payments-antifraud', $antifraudMessage );
 	}
 
 	/**

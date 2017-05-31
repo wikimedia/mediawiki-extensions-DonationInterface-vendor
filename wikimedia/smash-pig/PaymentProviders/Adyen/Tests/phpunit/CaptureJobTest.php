@@ -3,9 +3,9 @@
 use PHPQueue\Backend\PDO;
 use SmashPig\Core\Configuration;
 use SmashPig\Core\Context;
-use SmashPig\Core\DataStores\KeyedOpaqueStorableObject;
+use SmashPig\Core\DataStores\JsonSerializableObject;
 use SmashPig\Core\DataStores\PendingDatabase;
-use SmashPig\Core\QueueConsumers\BaseQueueConsumer;
+use SmashPig\Core\DataStores\QueueWrapper;
 use SmashPig\PaymentProviders\Adyen\Jobs\ProcessCaptureRequestJob;
 use SmashPig\PaymentProviders\Adyen\Tests\AdyenTestConfiguration;
 use SmashPig\Tests\BaseSmashPigUnitTestCase;
@@ -38,7 +38,7 @@ class CaptureJobTest extends BaseSmashPigUnitTestCase {
 			file_get_contents( __DIR__ . '/../Data/pending.json' ) , true
 		);
 		$this->pendingDatabase->storeMessage( $this->pendingMessage );
-		$this->antifraudQueue = BaseQueueConsumer::getQueue( 'payments-antifraud' );
+		$this->antifraudQueue = QueueWrapper::getQueue( 'payments-antifraud' );
 	}
 
 	public function tearDown() {
@@ -53,7 +53,7 @@ class CaptureJobTest extends BaseSmashPigUnitTestCase {
 	public function testSuccessfulCapture() {
 		$api = $this->config->object( 'payment-provider/adyen/api', true );
 
-		$auth = KeyedOpaqueStorableObject::fromJsonProxy(
+		$auth = JsonSerializableObject::fromJsonProxy(
 			'SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\Authorisation',
 			file_get_contents( __DIR__ . '/../Data/auth.json' )
 		);
@@ -103,7 +103,7 @@ class CaptureJobTest extends BaseSmashPigUnitTestCase {
 	public function testReviewThreshold() {
 		$api = $this->config->object( 'payment-provider/adyen/api', true );
 
-		$auth = KeyedOpaqueStorableObject::fromJsonProxy(
+		$auth = JsonSerializableObject::fromJsonProxy(
 			'SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\Authorisation',
 			file_get_contents( __DIR__ . '/../Data/auth.json' )
 		);
@@ -149,7 +149,7 @@ class CaptureJobTest extends BaseSmashPigUnitTestCase {
 	public function testRejectThreshold() {
 		$api = $this->config->object( 'payment-provider/adyen/api', true );
 
-		$auth = KeyedOpaqueStorableObject::fromJsonProxy(
+		$auth = JsonSerializableObject::fromJsonProxy(
 			'SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\Authorisation',
 			file_get_contents( __DIR__ . '/../Data/auth.json' )
 		);
@@ -197,7 +197,7 @@ class CaptureJobTest extends BaseSmashPigUnitTestCase {
 	public function testDuplicateAuthorisation() {
 		$api = $this->config->object( 'payment-provider/adyen/api', true );
 
-		$auth1 = KeyedOpaqueStorableObject::fromJsonProxy(
+		$auth1 = JsonSerializableObject::fromJsonProxy(
 			'SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\Authorisation',
 			file_get_contents( __DIR__ . '/../Data/auth.json' )
 		);
@@ -206,7 +206,7 @@ class CaptureJobTest extends BaseSmashPigUnitTestCase {
 
 		$this->assertEquals( 1, count( $api->captured ), 'Set up failed' );
 
-		$auth2 = KeyedOpaqueStorableObject::fromJsonProxy(
+		$auth2 = JsonSerializableObject::fromJsonProxy(
 			'SmashPig\PaymentProviders\Adyen\ExpatriatedMessages\Authorisation',
 			file_get_contents( __DIR__ . '/../Data/auth.json' )
 		);
