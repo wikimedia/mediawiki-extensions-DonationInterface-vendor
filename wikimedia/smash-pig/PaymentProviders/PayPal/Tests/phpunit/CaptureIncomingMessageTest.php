@@ -1,8 +1,8 @@
 <?php
 namespace SmashPig\PaymentProviders\PayPal\Tests;
 
-use SmashPig\Core\Configuration;
 use SmashPig\Core\Context;
+use SmashPig\Core\ProviderConfiguration;
 use SmashPig\CrmLink\Messages\SourceFields;
 use SmashPig\PaymentProviders\PayPal\Listener;
 use SmashPig\Tests\BaseSmashPigUnitTestCase;
@@ -17,7 +17,7 @@ use SmashPig\Core\DataStores\JsonSerializableObject;
 class CaptureIncomingMessageTest extends BaseSmashPigUnitTestCase {
 
 	/**
-	 * @var Configuration
+	 * @var ProviderConfiguration
 	 */
 	public $config;
 
@@ -42,13 +42,10 @@ class CaptureIncomingMessageTest extends BaseSmashPigUnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
-		$this->config = PayPalTestConfiguration::get();
-
-		// php-queue\PDO complains about pop() from non-existent table
-		$this->config->object( 'data-store/jobs-paypal' )
-			->createTable( 'jobs-paypal' );
-
-		Context::initWithLogger( $this->config );
+		$this->config = Context::get()->getGlobalConfiguration();
+		Context::get()->setProviderConfiguration(
+			PayPalTestConfiguration::get( $this->config )
+		);
 	}
 
 	public function tearDown() {
@@ -125,7 +122,6 @@ class CaptureIncomingMessageTest extends BaseSmashPigUnitTestCase {
 		$job->execute();
 
 		$queue = $this->config->object( 'data-store/' . $msg['type'] );
-		$queue->createTable( $msg['type'] );
 		$message = $queue->pop();
 
 		if ( $job->is_reject() ) {
