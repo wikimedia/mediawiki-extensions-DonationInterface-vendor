@@ -18,4 +18,22 @@ abstract class IngenicoPaymentProvider {
 		$this->providerConfiguration = Context::get()->getProviderConfiguration();
 		$this->api = $this->providerConfiguration->object( 'api' );
 	}
+
+	public function getPaymentStatus($paymentId){
+		$path = "payments/$paymentId";
+		$response = $this->api->makeApiCall($path, 'GET');
+		return $response;
+	}
+
+	public function approvePayment($paymentId, $params){
+		$path = "payments/$paymentId/approve";
+		$response = $this->api->makeApiCall($path, 'POST', $params);
+		return $response;
+	}
+
+	public function cancelPayment($paymentId){
+		$path = "payments/$paymentId/cancel";
+		$response = $this->api->makeApiCall($path, 'POST');
+		return $response;
+	}
 }
