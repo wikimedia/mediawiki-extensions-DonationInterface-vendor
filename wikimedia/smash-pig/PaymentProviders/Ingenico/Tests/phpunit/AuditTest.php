@@ -85,6 +85,7 @@ class AuditTest extends BaseSmashPigUnitTestCase {
 			'date' => 1500942220,
 			'gross' => 100,
 			'gateway_parent_id' => '123456789',
+			'gateway_refund_id' => '123456789',
 			'installment' => 1,
 			'gross_currency' => 'USD',
 			'type' => 'refund',
@@ -106,10 +107,34 @@ class AuditTest extends BaseSmashPigUnitTestCase {
 			'date' => 1495023569,
 			'gross' => 200,
 			'gateway_parent_id' => '5167046621',
+			'gateway_refund_id' => '5167046621',
 			'installment' => 1,
 			'gross_currency' => 'USD',
 			'type' => 'chargeback',
 		);
 		$this->assertEquals( $expected, $actual, 'Did not parse chargeback correctly' );
+	}
+
+	/**
+	 * We get some refunds in a weird sparse format with OrderID zero and no
+	 * TransactionDateTime. At least get the ct_id and a date out of them.
+	 */
+	public function testProcessSparseRefund() {
+		$processor = new IngenicoAudit();
+		$output = $processor->parseFile( __DIR__ . '/../Data/sparseRefund.xml.gz' );
+		$this->assertEquals( 1, count( $output ), 'Should have found one refund' );
+		$actual = $output[0];
+		$expected = array(
+			'gateway' => 'globalcollect', // TODO: switch to ingenico for Connect
+			'contribution_tracking_id' => '48987654',
+			'date' => 1503964800,
+			'gross' => 15,
+			'gateway_parent_id' => '0', // We'll need to find it by ct_id
+			'gateway_refund_id' => '0', // And we'll need to fill in this field
+			'installment' => '', // EffortID came in blank too
+			'gross_currency' => 'EUR',
+			'type' => 'refund',
+		);
+		$this->assertEquals( $expected, $actual, 'Did not parse refund correctly' );
 	}
 }

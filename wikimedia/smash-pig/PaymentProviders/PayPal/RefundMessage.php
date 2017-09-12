@@ -7,20 +7,20 @@ class RefundMessage extends Message {
 	public static function normalizeMessage( &$message, $ipnMessage ) {
 		$message['gateway_refund_id'] = $ipnMessage['txn_id'];
 		$message['gross_currency'] = $ipnMessage['mc_currency'];
-		if ( isset( $message['type'] ) &&
-			$message['type'] === 'chargeback_settlement' ) {
+		if ( isset( $message['txn_type'] ) && $message['txn_type'] === 'adjustment' ) {
 			$message['type'] = 'chargeback';
-		} else {
+
+		} elseif ( isset( $ipnMessage['reason_code'] ) && in_array( $ipnMessage['reason_code'], array( 'refund', 'buyer_complaint', 'other' ) ) ) {
 			$message['type'] = 'refund';
+
 		}
 
-		// Express checkout puts a description in transaction_subject, Legacy puts a contribution
-		// tracking ID there. Chargebacks don't set the field at all.
-		if ( isset( $ipnMessage['transaction_subject'] ) && !is_numeric( $ipnMessage['transaction_subject'] ) ) {
+		// Express checkout sets the 'invoice' field, legacy doesn't.
+		// EC refunds of recurring payments use 'rp_invoice_id'
+		if ( isset( $ipnMessage['invoice'] ) || isset( $ipnMessage['rp_invoice_id'] ) ) {
 			$message['gateway'] = 'paypal_ec';
 		} else {
 			$message['gateway'] = 'paypal';
 		}
-
 	}
 }

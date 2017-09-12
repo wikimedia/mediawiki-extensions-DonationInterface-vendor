@@ -18,14 +18,8 @@ class PendingDatabaseTest extends BaseSmashPigUnitTestCase {
 		$this->db = PendingDatabase::get();
 	}
 
-	public function tearDown() {
-		TestingDatabase::clearStatics( $this->db );
-
-		parent::tearDown();
-	}
-
 	protected static function getTestMessage( $uniq = null ) {
-		if ( !$uniq ) { 
+		if ( !$uniq ) {
 			$uniq = mt_rand();
 		}
 		return array(
@@ -41,7 +35,7 @@ class PendingDatabaseTest extends BaseSmashPigUnitTestCase {
 
 	public function testStoreMessage() {
 		$message = self::getTestMessage();
-		$this->db->storeMessage( $message );
+		$id = $this->db->storeMessage( $message );
 
 		// Confirm work without using the API.
 		$pdo = $this->db->getDatabase();
@@ -53,7 +47,7 @@ class PendingDatabaseTest extends BaseSmashPigUnitTestCase {
 		$this->assertEquals( 1, count( $rows ),
 			'One row stored and retrieved.' );
 		$expected = array(
-			'id' => '1',
+			'id' => $id,
 			// NOTE: This is a db-specific string, sqlite3 in this case, and
 			// you'll have different formatting if using any other database.
 			'date' => '20160720001408',
