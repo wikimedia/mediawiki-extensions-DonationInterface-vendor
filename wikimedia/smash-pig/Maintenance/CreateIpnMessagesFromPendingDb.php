@@ -70,7 +70,7 @@ class CreateIpnMessagesFromPendingDb extends MaintenanceBase {
 
 	protected function createIpnMessages( $pendingMessage, $templates, $outputDir ) {
 		$oid = $pendingMessage['order_id'];
-		$replacements = array(
+		$replacements = [
 			'[[CURRENCY]]' => $pendingMessage['currency'],
 			'[[AMOUNT]]' => $pendingMessage['gross'],
 			// FIXME yen?
@@ -78,11 +78,14 @@ class CreateIpnMessagesFromPendingDb extends MaintenanceBase {
 			'[[ORDER_ID]]' => $oid,
 			'[[PROCESSOR_REF_1]]' => mt_rand(),
 			'[[PROCESSOR_REF_2]]' => mt_rand(),
-		);
+		];
 		if ( $this->getArgument( 'gateway' ) === 'astropay' ) {
 			// ugly, but whatchagonnado?
 			$replacements['[[ASTROPAY_SIGNATURE_SUCCESS]]'] = $this->getAstroPaySignature( $pendingMessage, '9' );
 			$replacements['[[ASTROPAY_SIGNATURE_FAILURE]]'] = $this->getAstroPaySignature( $pendingMessage, '8' );
+		}
+		if ( isset( $pendingMessage['gateway_account'] ) ) {
+			$replacements['[[ACCOUNT_CODE]]'] = $pendingMessage['gateway_account'];
 		}
 		foreach ( $templates as $template ) {
 			$fullPath = $this->templateDir . $template;

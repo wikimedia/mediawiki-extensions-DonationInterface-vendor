@@ -17,11 +17,11 @@ abstract class AmazonMessage extends ListenerMessage {
 	 * @return array associative queue message thing
 	 */
 	public function normalizeForQueue() {
-		$queueMsg = array(
+		$queueMsg = [
 			'date' => $this->date,
 			'gateway' => 'amazon',
 			'gross' => $this->gross
-		);
+		];
 		return $queueMsg;
 	}
 
@@ -32,6 +32,14 @@ abstract class AmazonMessage extends ListenerMessage {
 
 	public function validate() {
 		return true;
+	}
+
+	public function getCurrency() {
+		return $this->currency;
+	}
+
+	public function getGross() {
+		return $this->gross;
 	}
 
 	protected function setGatewayIds( $amazonId ) {

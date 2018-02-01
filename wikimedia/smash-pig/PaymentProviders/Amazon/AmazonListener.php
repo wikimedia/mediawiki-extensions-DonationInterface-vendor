@@ -12,22 +12,25 @@ use SmashPig\Maintenance\TestFailMail;
  * Uses the Amazon SDK to parse incoming IPN messages
  */
 class AmazonListener extends RestListener {
-	protected $messageClasses = array(
-		'PaymentCapture' => array(
+	protected $messageClasses = [
+		'PaymentCapture' => [
 			'Completed' => 'SmashPig\PaymentProviders\Amazon\ExpatriatedMessages\CaptureCompleted',
 			'Declined' => 'SmashPig\PaymentProviders\Amazon\ExpatriatedMessages\CaptureDeclined',
-		),
-		'PaymentRefund' => array(
+		],
+		'PaymentRefund' => [
 			'Completed' => 'SmashPig\PaymentProviders\Amazon\ExpatriatedMessages\RefundCompleted',
 			'Declined' => 'SmashPig\PaymentProviders\Amazon\ExpatriatedMessages\RefundDeclined',
-		),
-	);
+		],
+		'PaymentAuthorize' => [
+			'Declined' => 'SmashPig\PaymentProviders\Amazon\ExpatriatedMessages\AuthorizationDeclined',
+		]
+	];
 
 	protected function parseEnvelope( Request $request ) {
 		// Symfony's framework gives us each header's value as an array
 		// (to account for potential repeated headers?
 		// IpnHandler's constructor expects scalar values, so we flatten them
-		$headers = array();
+		$headers = [];
 		foreach ( $request->headers->all() as $header => $annoyingArray ) {
 			if ( count( $annoyingArray ) !== 1 ) {
 				throw new ListenerDataException( "header '$header' should have a single value" );
@@ -39,13 +42,13 @@ class AmazonListener extends RestListener {
 		$secureLog = Logger::getTaggedLogger( 'RawData' );
 		$secureLog->info(
 			'Incoming message (raw)',
-			array(
+			[
 				'headers' => $headers,
 				'body' => $json
-			)
+			]
 		);
 
-		$messages = array();
+		$messages = [];
 		try{
 			$amazonHandlerMessage = AmazonApi::createIpnHandler(
 				$headers,
@@ -72,7 +75,9 @@ class AmazonListener extends RestListener {
 				$secureLog->debug( 'Created message', $message );
 				$messages[] = $message;
 			} else {
-				Logger::info( "Message ignored: status = {$status}" );
+				Logger::info(
+					"Message ignored: notificationType = {$type}, status = {$status}"
+				);
 			}
 		} else {
 			Logger::info( "Message ignored: notificationType = {$type}" );
@@ -87,6 +92,8 @@ class AmazonListener extends RestListener {
 				return $values['CaptureDetails']['CaptureStatus']['State'];
 			case 'PaymentRefund':
 				return $values['RefundDetails']['RefundStatus']['State'];
+			case 'PaymentAuthorize':
+				return $values['AuthorizationDetails']['AuthorizationStatus']['State'];
 			default:
 				return false;
 		}
