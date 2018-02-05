@@ -504,6 +504,7 @@ class ComposerStaticInit496326f024bb73fb2c54d7fcabb5462e
         'PHPQueue\\Worker' => __DIR__ . '/..' . '/coderkungfu/php-queue/src/PHPQueue/Worker.php',
         'POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.pop3.php',
         'PayPalCountry' => __DIR__ . '/../..' . '/paypal_gateway/PayPalCountry.php',
+        'PayWithAmazon\\ArrayUtil' => __DIR__ . '/..' . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/ArrayUtil.php',
         'PayWithAmazon\\BaseClient' => __DIR__ . '/..' . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/BaseClient.php',
         'PayWithAmazon\\HttpCurl' => __DIR__ . '/..' . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/HttpCurl.php',
         'PayWithAmazon\\HttpCurlInterface' => __DIR__ . '/..' . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/HttpCurlInterface.php',

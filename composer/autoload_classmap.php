@@ -339,6 +339,7 @@ return array(
     'PHPQueue\\Worker' => $vendorDir . '/coderkungfu/php-queue/src/PHPQueue/Worker.php',
     'POP3' => $vendorDir . '/phpmailer/phpmailer/class.pop3.php',
     'PayPalCountry' => $baseDir . '/paypal_gateway/PayPalCountry.php',
+    'PayWithAmazon\\ArrayUtil' => $vendorDir . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/ArrayUtil.php',
     'PayWithAmazon\\BaseClient' => $vendorDir . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/BaseClient.php',
     'PayWithAmazon\\HttpCurl' => $vendorDir . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/HttpCurl.php',
     'PayWithAmazon\\HttpCurlInterface' => $vendorDir . '/amzn/login-and-pay-with-amazon-sdk-php/PayWithAmazon/HttpCurlInterface.php',

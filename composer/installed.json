@@ -1332,48 +1332,6 @@
         ]
     },
     {
-        "name": "amzn/login-and-pay-with-amazon-sdk-php",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/ejegg/login-and-pay-with-amazon-sdk-php",
-            "reference": "198cc8ccab51e270909602cee38706b4d1f6bbba"
-        },
-        "require": {
-            "ext-curl": "*",
-            "php": ">=5.3.0",
-            "psr/log": "^1.0"
-        },
-        "time": "2017-12-15T15:03:21+00:00",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "PayWithAmazon\\": "PayWithAmazon/"
-            }
-        },
-        "license": [
-            "Apache OSL-2"
-        ],
-        "authors": [
-            {
-                "name": "Amazon Payments",
-                "email": "eps-dse@amazon.com"
-            }
-        ],
-        "description": "Pay with Amazon SDK",
-        "homepage": "https://github.com/amzn/login-and-pay-with-amazon-sdk-php",
-        "keywords": [
-            "amazon",
-            "amazon payments",
-            "pay",
-            "pay with amazon",
-            "payment",
-            "payments"
-        ]
-    },
-    {
         "name": "wikimedia/smash-pig",
         "version": "v0.5.2",
         "version_normalized": "0.5.2.0",
@@ -1435,6 +1393,48 @@
         "homepage": "http://smashpig.org",
         "keywords": [
             "donations",
+            "payments"
+        ]
+    },
+    {
+        "name": "amzn/login-and-pay-with-amazon-sdk-php",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ejegg/login-and-pay-with-amazon-sdk-php",
+            "reference": "ec0f9e5b18edd5c2e61e8dfdde88e679a88dd533"
+        },
+        "require": {
+            "ext-curl": "*",
+            "php": ">=5.3.0",
+            "psr/log": "^1.0"
+        },
+        "time": "2018-02-05T15:24:08+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "PayWithAmazon\\": "PayWithAmazon/"
+            }
+        },
+        "license": [
+            "Apache OSL-2"
+        ],
+        "authors": [
+            {
+                "name": "Amazon Payments",
+                "email": "eps-dse@amazon.com"
+            }
+        ],
+        "description": "Pay with Amazon SDK",
+        "homepage": "https://github.com/amzn/login-and-pay-with-amazon-sdk-php",
+        "keywords": [
+            "amazon",
+            "amazon payments",
+            "pay",
+            "pay with amazon",
+            "payment",
             "payments"
         ]
     }
