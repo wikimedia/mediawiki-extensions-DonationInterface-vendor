@@ -3,13 +3,13 @@
 namespace SmashPig\PaymentProviders\Ingenico\Tests;
 
 use PHPUnit_Framework_MockObject_MockObject;
-use SmashPig\PaymentProviders\Ingenico\IngenicoPaymentProvider;
+use SmashPig\PaymentProviders\Ingenico\PaymentProvider;
 use SmashPig\Tests\BaseSmashPigUnitTestCase;
 
 /**
  * @group Ingenico
  */
-class IngenicoPaymentProviderTest extends BaseSmashPigUnitTestCase {
+class PaymentProviderTest extends BaseSmashPigUnitTestCase {
 	/**
 	 * @var PHPUnit_Framework_MockObject_MockObject
 	 */
@@ -18,7 +18,7 @@ class IngenicoPaymentProviderTest extends BaseSmashPigUnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->setProviderConfiguration( 'ingenico' );
-		$this->provider = $this->getMockForAbstractClass( '\SmashPig\PaymentProviders\Ingenico\IngenicoPaymentProvider' );
+		$this->provider = $this->getMockForAbstractClass( '\SmashPig\PaymentProviders\Ingenico\PaymentProvider' );
 	}
 
 	public function testGetPaymentStatus() {
@@ -60,5 +60,20 @@ class IngenicoPaymentProviderTest extends BaseSmashPigUnitTestCase {
 			);
 		$response = $this->provider->cancelPayment( $paymentId );
 		$this->assertEquals( $paymentId, $response['payment']['id'] );
+	}
+
+	public function testTokenizePayment() {
+		$paymentId = '000000850010000188180000200001';
+		$this->setUpResponse( __DIR__ . '/../Data/paymentToken.response', 200 );
+		$this->curlWrapper->expects( $this->once() )
+			->method( 'execute' )->with(
+				$this->equalTo( "https://api-sandbox.globalcollect.com/v1/1234/payments/$paymentId/tokenize" ),
+				$this->equalTo( 'POST' )
+			);
+		$response = $this->provider->tokenizePayment( $paymentId );
+		$this->assertEquals(
+			'bfa8a7e4-4530-455a-858d-204ba2afb77e',
+			$response['token']
+		);
 	}
 }
