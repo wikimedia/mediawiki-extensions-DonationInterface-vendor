@@ -4,6 +4,7 @@ namespace SmashPig\PaymentProviders\Ingenico;
 
 use SmashPig\Core\Context;
 use SmashPig\Core\Logging\Logger;
+use SmashPig\Core\Mapper\Mapper;
 
 /**
  * Base class for Ingenico payments. Each payment product group should get
@@ -12,6 +13,7 @@ use SmashPig\Core\Logging\Logger;
 abstract class PaymentProvider {
 
 	protected $api;
+
 	protected $providerConfiguration;
 
 	/**
@@ -25,6 +27,24 @@ abstract class PaymentProvider {
 		// FIXME: provide objects in constructor
 		$this->providerConfiguration = Context::get()->getProviderConfiguration();
 		$this->api = $this->providerConfiguration->object( 'api' );
+	}
+
+	/**
+	 * @param array $params
+	 *
+	 * @return mixed
+	 */
+	public function createPayment( $params ) {
+		$path = "payments";
+		$mapConfig = $this->providerConfiguration->val( 'maps/create-payment' );
+		$createPaymentParams = Mapper::map(
+			$params,
+			$mapConfig['path'],
+			$mapConfig['transformers']
+		);
+		$response = $this->api->makeApiCall( $path, 'POST', $createPaymentParams );
+		$this->addPaymentStatusErrorsIfPresent( $response, $response['payment'] );
+		return $response;
 	}
 
 	/**
@@ -132,7 +152,7 @@ abstract class PaymentProvider {
 	protected function logPaymentStatusErrors( $errors ) {
 		foreach ( $errors as $error ) {
 			$logMessage = "Error code {$error['code']}: {$error['message']}.";
-			Logger::error( $logMessage );
+			Logger::warning( $logMessage );
 		}
 	}
 }
