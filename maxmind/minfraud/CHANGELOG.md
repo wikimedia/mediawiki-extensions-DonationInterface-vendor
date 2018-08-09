@@ -1,6 +1,51 @@
 CHANGELOG
 =========
 
+1.7.0 (2018-04-10)
+------------------
+
+* Renamed MaxMind user ID to account ID in the code and added support for the
+  new `ACCOUNT_ID_REQUIRED` error code.
+* Added the following new values to the payment processor validation:
+  * `ccavenue`
+  * `ct_payments`
+  * `dalenys`
+  * `oney`
+  * `posconnect`
+* Added support for the `/device/local_time` output. This is exposed as
+  the `localTime` property on `MaxMind\MinFraud\Model\Device`.
+* Added support for the `/credit_card/is_virtual` output. This is exposed as
+  the `isVirtual` property on `MaxMind\MinFraud\Model\CreditCard`.
+* Added `payout_change` to the `/event/type` input validation.
+
+
+1.6.0 (2018-01-19)
+------------------
+
+* Upgraded `geoip2/geoip2` dependency. This version adds the
+  `isInEuropeanUnion` property to `MaxMind\MinFraud\Model\GeoIp2Country`
+  and `GeoIp2\Record\RepresentedCountry`. This property is `true` if the
+  country is a member state of the European Union.
+* Added the following new values to the payment processor validation:
+  * `cybersource`
+  * `transact_pro`
+  * `wirecard`
+
+1.5.0 (2017-10-30)
+------------------
+
+* TLD validation is no longer performed when validating `/email/domain` in
+  order to better accommodate new gTLDs that the validation library does
+  not yet know about.
+* Added the following new values to the payment processor validation:
+  * `bpoint`
+  * `checkout_com`
+  * `emerchantpay`
+  * `heartland`
+  * `payway`
+* Updated `geoip2/geoip2` dependency to add support for GeoIP2 Precision
+  Insights anonymizer fields.
+
 1.4.0 (2017-07-10)
 ------------------
 
