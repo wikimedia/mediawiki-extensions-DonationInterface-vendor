@@ -151,6 +151,7 @@ return array(
     'IngenicoGatewayResult' => $baseDir . '/ingenico_gateway/ingenico_resultswitcher.body.php',
     'IngenicoGetOrderStatusMaintenance' => $baseDir . '/globalcollect_gateway/scripts/get_orderstatus.php',
     'IngenicoLanguage' => $baseDir . '/globalcollect_gateway/IngenicoLanguage.php',
+    'IngenicoLocale' => $baseDir . '/ingenico_gateway/IngenicoLocale.php',
     'IngenicoMethodCodec' => $baseDir . '/globalcollect_gateway/IngenicoMethodCodec.php',
     'IngenicoOrphanAdapter' => $baseDir . '/ingenico_gateway/orphan.adapter.php',
     'IngenicoOrphanRectifier' => $baseDir . '/ingenico_gateway/IngenicoOrphanRectifier.php',

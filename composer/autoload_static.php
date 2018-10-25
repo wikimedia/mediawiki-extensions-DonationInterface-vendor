@@ -322,6 +322,7 @@ class ComposerStaticInit496326f024bb73fb2c54d7fcabb5462e
         'IngenicoGatewayResult' => __DIR__ . '/../..' . '/ingenico_gateway/ingenico_resultswitcher.body.php',
         'IngenicoGetOrderStatusMaintenance' => __DIR__ . '/../..' . '/globalcollect_gateway/scripts/get_orderstatus.php',
         'IngenicoLanguage' => __DIR__ . '/../..' . '/globalcollect_gateway/IngenicoLanguage.php',
+        'IngenicoLocale' => __DIR__ . '/../..' . '/ingenico_gateway/IngenicoLocale.php',
         'IngenicoMethodCodec' => __DIR__ . '/../..' . '/globalcollect_gateway/IngenicoMethodCodec.php',
         'IngenicoOrphanAdapter' => __DIR__ . '/../..' . '/ingenico_gateway/orphan.adapter.php',
         'IngenicoOrphanRectifier' => __DIR__ . '/../..' . '/ingenico_gateway/IngenicoOrphanRectifier.php',
