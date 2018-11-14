@@ -204,17 +204,17 @@
     },
     {
         "name": "composer/ca-bundle",
-        "version": "1.1.2",
-        "version_normalized": "1.1.2.0",
+        "version": "1.1.3",
+        "version_normalized": "1.1.3.0",
         "source": {
             "type": "git",
             "url": "https://github.com/composer/ca-bundle.git",
-            "reference": "46afded9720f40b9dc63542af4e3e43a1177acb0"
+            "reference": "8afa52cd417f4ec417b4bfe86b68106538a87660"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/composer/ca-bundle/zipball/46afded9720f40b9dc63542af4e3e43a1177acb0",
-            "reference": "46afded9720f40b9dc63542af4e3e43a1177acb0",
+            "url": "https://api.github.com/repos/composer/ca-bundle/zipball/8afa52cd417f4ec417b4bfe86b68106538a87660",
+            "reference": "8afa52cd417f4ec417b4bfe86b68106538a87660",
             "shasum": ""
         },
         "require": {
@@ -227,7 +227,7 @@
             "psr/log": "^1.0",
             "symfony/process": "^2.5 || ^3.0 || ^4.0"
         },
-        "time": "2018-08-08T08:57:40+00:00",
+        "time": "2018-10-18T06:09:13+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -643,23 +643,23 @@
     },
     {
         "name": "neitanod/forceutf8",
-        "version": "v2.0.1",
-        "version_normalized": "2.0.1.0",
+        "version": "v2.0.2",
+        "version_normalized": "2.0.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/neitanod/forceutf8.git",
-            "reference": "47c883ab2739e7938a8bb0bfd1c29d48c88858de"
+            "reference": "30980a8ca2787a7730d370eac310b8987eb68229"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/neitanod/forceutf8/zipball/47c883ab2739e7938a8bb0bfd1c29d48c88858de",
-            "reference": "47c883ab2739e7938a8bb0bfd1c29d48c88858de",
+            "url": "https://api.github.com/repos/neitanod/forceutf8/zipball/30980a8ca2787a7730d370eac310b8987eb68229",
+            "reference": "30980a8ca2787a7730d370eac310b8987eb68229",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.0"
         },
-        "time": "2017-05-22T18:50:57+00:00",
+        "time": "2018-10-10T23:03:52+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -668,6 +668,9 @@
             }
         },
         "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
         "authors": [
             {
                 "name": "Sebastián Grignoli",
@@ -907,17 +910,17 @@
     },
     {
         "name": "respect/validation",
-        "version": "1.1.22",
-        "version_normalized": "1.1.22.0",
+        "version": "1.1.28",
+        "version_normalized": "1.1.28.0",
         "source": {
             "type": "git",
             "url": "https://github.com/Respect/Validation.git",
-            "reference": "19d6ec893994912d21b390c43d287816ab070772"
+            "reference": "48b06254c4af1a2d6c1715eb3a2bb3cb72e08bfc"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Respect/Validation/zipball/19d6ec893994912d21b390c43d287816ab070772",
-            "reference": "19d6ec893994912d21b390c43d287816ab070772",
+            "url": "https://api.github.com/repos/Respect/Validation/zipball/48b06254c4af1a2d6c1715eb3a2bb3cb72e08bfc",
+            "reference": "48b06254c4af1a2d6c1715eb3a2bb3cb72e08bfc",
             "shasum": ""
         },
         "require": {
@@ -925,7 +928,7 @@
             "symfony/polyfill-mbstring": "^1.2"
         },
         "require-dev": {
-            "egulias/email-validator": "~1.2",
+            "egulias/email-validator": "~1.2 || ~2.1",
             "mikey179/vfsstream": "^1.5",
             "phpunit/phpunit": "~4.0",
             "symfony/validator": "~2.6.9",
@@ -939,7 +942,7 @@
             "symfony/validator": "Use Symfony validator through Respect\\Validation",
             "zendframework/zend-validator": "Use Zend Framework validator through Respect\\Validation"
         },
-        "time": "2018-08-01T13:06:54+00:00",
+        "time": "2018-10-11T12:18:10+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -954,7 +957,7 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "BSD Style"
+            "BSD-3-Clause"
         ],
         "authors": [
             {
@@ -972,8 +975,8 @@
     },
     {
         "name": "symfony/event-dispatcher",
-        "version": "v2.8.44",
-        "version_normalized": "2.8.44.0",
+        "version": "v2.8.46",
+        "version_normalized": "2.8.46.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/event-dispatcher.git",
@@ -1034,17 +1037,17 @@
     },
     {
         "name": "symfony/http-foundation",
-        "version": "v2.8.44",
-        "version_normalized": "2.8.44.0",
+        "version": "v2.8.46",
+        "version_normalized": "2.8.46.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/http-foundation.git",
-            "reference": "10f660d43087b2198c3789bebbd587d20ec6e956"
+            "reference": "9fcce5f0b6896a135d192cc9fd5394fd46f74eff"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/http-foundation/zipball/10f660d43087b2198c3789bebbd587d20ec6e956",
-            "reference": "10f660d43087b2198c3789bebbd587d20ec6e956",
+            "url": "https://api.github.com/repos/symfony/http-foundation/zipball/9fcce5f0b6896a135d192cc9fd5394fd46f74eff",
+            "reference": "9fcce5f0b6896a135d192cc9fd5394fd46f74eff",
             "shasum": ""
         },
         "require": {
@@ -1056,7 +1059,7 @@
         "require-dev": {
             "symfony/expression-language": "~2.4|~3.0.0"
         },
-        "time": "2018-08-01T13:47:49+00:00",
+        "time": "2018-09-23T15:27:53+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1330,24 +1333,24 @@
     },
     {
         "name": "symfony/yaml",
-        "version": "v2.8.44",
-        "version_normalized": "2.8.44.0",
+        "version": "v2.8.46",
+        "version_normalized": "2.8.46.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/yaml.git",
-            "reference": "fbf876678e29dc634430dcf0096e216eb0004467"
+            "reference": "5baf0f821b14eee8ca415e6a0361a9fa140c002c"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/yaml/zipball/fbf876678e29dc634430dcf0096e216eb0004467",
-            "reference": "fbf876678e29dc634430dcf0096e216eb0004467",
+            "url": "https://api.github.com/repos/symfony/yaml/zipball/5baf0f821b14eee8ca415e6a0361a9fa140c002c",
+            "reference": "5baf0f821b14eee8ca415e6a0361a9fa140c002c",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.9",
             "symfony/polyfill-ctype": "~1.8"
         },
-        "time": "2018-07-26T09:03:18+00:00",
+        "time": "2018-08-29T13:11:53+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1382,12 +1385,12 @@
     },
     {
         "name": "wikimedia/smash-pig",
-        "version": "v0.5.8.2",
-        "version_normalized": "0.5.8.2",
+        "version": "v0.5.8.3",
+        "version_normalized": "0.5.8.3",
         "source": {
             "type": "git",
             "url": "https://gerrit.wikimedia.org/r/wikimedia/fundraising/SmashPig.git",
-            "reference": "90e92af26b410aba1786da29f3a334862e0fad9f"
+            "reference": "5c7ca2110dc7a882609ca5a091a5020e57ab4d74"
         },
         "require": {
             "amzn/login-and-pay-with-amazon-sdk-php": "dev-master",
@@ -1408,7 +1411,7 @@
             "mediawiki/mediawiki-codesniffer": "0.11.0",
             "phpunit/phpunit": "^5.6"
         },
-        "time": "2018-10-25T20:13:18+00:00",
+        "time": "2018-11-06T20:36:23+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {
